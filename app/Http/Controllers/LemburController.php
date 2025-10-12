@@ -101,7 +101,7 @@ class LemburController extends Controller
      */
     public function approvalIndex()
     {
-        $lemburs = Lembur::where('status', 'Diajukan')->orderBy('tgl_pengajuan', 'desc')->get();
+        $lemburs = Lembur::where('status_pengajuan', 'Diajukan')->orderBy('tgl_pengajuan', 'desc')->get();
         return view('lembur.approval', compact('lemburs'));
     }
 

@@ -107,9 +107,9 @@
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $item->user->name ?? '-' }}</td>
-                            <td>{{ $item->plan ?? '-' }}</td>
-                            <td>{{ $item->actual ?? '-' }}</td>
-                            <td>{{ $item->paraf ?? '-' }}</td>
+                            <td>{{ $item->tgl_jam_mulai ?? '-' }}</td>
+                            <td>{{ $item->tgl_jam_selesai ?? '-' }}</td>
+                            <td>{{ $item->tanda_tangan ?? '-' }}</td>
                             <td>{{ $item->absen ?? '-' }}</td>
                             <td>{{ $item->ot_hours ?? '-' }}</td>
                             <td>{{ $item->spv ?? '-' }}</td>
