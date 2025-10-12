@@ -36,9 +36,7 @@ class CutiController extends Controller
         $status = 'menunggu';
 
         if ($user->role === 'karyawan') {
-            $approverId = User::where('departemen_id', $user->departemen_id)
-                            ->where('role', 'atasan')
-                            ->first()?->id;
+              $approverId = User::where('role', 'atasan')->first()?->id;
         } elseif ($user->role === 'atasan') {
             $approverId = User::where('role', 'hr')->first()?->id;
         } elseif ($user->role === 'hr') {
@@ -69,25 +67,43 @@ class CutiController extends Controller
     public function approvalIndex(Request $request)
     {
         $user = Auth::user();
-        
-        // Filter
+
         $status = $request->get('status', '');
         $bulan = $request->get('bulan', date('n'));
         $tahun = $request->get('tahun', date('Y'));
 
-        // Query cuti yang perlu di-approve oleh user login
-        $query = Cuti::where('approver_id', $user->id)
+        $query = Cuti::with('user')
             ->whereMonth('tgl_pengajuan', $bulan)
             ->whereYear('tgl_pengajuan', $tahun);
+
+        // Jika HR login, tampilkan cuti yang diajukan oleh role 'atasan'
+        if ($user->role === 'hr') {
+            $query->whereHas('user', function ($q) {
+                $q->where('role', 'atasan');
+            });
+        } elseif ($user->role === 'atasan') {
+            $query->whereHas('user', function ($q) {
+                $q->where('role', 'karyawan');
+            });
+        } elseif ($user->role === 'direktur') {
+            $query->whereHas('user', function ($q) {
+                $q->where('role', 'har');
+            });
+        } else {
+            // Jika bukan HR (misal atasan), tampilkan cuti yang harus dia approve
+            $query->where('approver_id', $user->id);
+        }
+
 
         if ($status) {
             $query->where('status_pengajuan', $status);
         }
 
-        $cutis = $query->with('user')->paginate(10);
+        $cutis = $query->paginate(10);
 
         return view('cuti.approval', compact('cutis', 'bulan', 'tahun'));
     }
+
 
     /**
      * Approve cuti (POST)

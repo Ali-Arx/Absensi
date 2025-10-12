@@ -46,8 +46,8 @@
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Date</label>
                         <div class="input-group">
-                            <input type="date" name="tanggal" class="form-control" 
-                                   value="{{ old('tanggal', date('Y-m-d')) }}" required>
+                            <input type="date" name="tgl_pengajuan" class="form-control" 
+                                    required>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -79,16 +79,16 @@
                         <div class="row g-2 flex-grow-1">
                             <div class="col">
                                 <small class="text-muted">Mulai</small>
-                                <input type="time" name="jam_masuk" id="jamMasuk" class="form-control" 
-                                       value="{{ old('jam_masuk') }}" required>
+                                <input type="time" name="tgl_jam_mulai" id="jamMasuk" class="form-control" 
+                                        required>
                             </div>
                             <div class="col-auto d-flex align-items-center">
                                 <span>-</span>
                             </div>
                             <div class="col">
                                 <small class="text-muted">Selesai</small>
-                                <input type="time" name="jam_keluar" id="jamKeluar" class="form-control" 
-                                       value="{{ old('jam_keluar') }}" required>
+                                <input type="time" name="tgl_jam_selesai" id="jamKeluar" class="form-control" 
+                                       required>
                             </div>
                         </div>
                     </div>
@@ -99,15 +99,8 @@
                     <label class="form-label fw-semibold">Departemen</label>
                     <div class="row g-2">
                         <div class="col-md-6">
-                            <select name="departemen" class="form-select" required>
-                                <option value="">-- Pilih Departemen --</option>
-                                <option value="staff" selected>Staff</option>
-                                <option value="non-staff">Non-Staff</option>
-                                <option value="produksi">Produksi</option>
-                                <option value="qc">Quality Control</option>
-                                <option value="maintenance">Maintenance</option>
-                                <option value="warehouse">Warehouse</option>
-                            </select>
+                            <input type="text" name="nama_karyawan" class="form-control" 
+                               value="{{ old('nama_karyawan', Auth::user()->departement ?? '') }}" readonly>
                         </div>
                     </div>
                 </div>
@@ -117,7 +110,7 @@
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Nama Karyawan</label>
                         <input type="text" name="nama_karyawan" class="form-control" 
-                               value="{{ old('nama_karyawan', Auth::user()->name ?? '') }}"required>
+                               value="{{ old('nama_karyawan', Auth::user()->name ?? '') }}" readonly>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Nama Atasan</label>
@@ -129,7 +122,7 @@
                 <!-- Row 6: Job Description -->
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Job Description</label>
-                    <textarea name="job_description" class="form-control" rows="4" 
+                    <textarea name="deskripsi_kerja" class="form-control" rows="4" 
                               placeholder="Masukkan deskripsi pekerjaan lembur..." required>{{ old('job_description') }}</textarea>
                 </div>
 

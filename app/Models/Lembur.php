@@ -13,19 +13,17 @@ class Lembur extends Model
 
     protected $fillable = [
         'user_id',
-        'tanggal',
+        'tgl_pengajuan',
         'section',
         'jam_kerja_id',
-        'jam_masuk',
-        'jam_keluar',
-        'departemen',
-        'nama_karyawan',
+        'tgl_jam_mulai',
+        'tgl_jam_selesai',
         'nama_atasan',
-        'job_description',
-        'paraf',
-        'status',
-        'disetujui_oleh',
-        'tanggal_disetujui',
+        'deskripsi_kerja',
+        'tanda_tangan',
+        'status_pengajuan',
+        'total_jam_kerja',
+        'tgl_status',
     ];
 
     public function jamKerja()
