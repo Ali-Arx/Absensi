@@ -16,9 +16,13 @@ return new class extends Migration
         $table->foreignId('user_id')->constrained()->onDelete('cascade');
         $table->foreignId('approver_id')->nullable()->constrained('users')->onDelete('set null');
         $table->date('tgl_pengajuan');
-        $table->datetime('tgl_jam_mulai');
-        $table->datetime('tgl_jam_selesai');
+        $table->time('tgl_jam_mulai');
+        $table->time('tgl_jam_selesai');
         $table->text('deskripsi_kerja');
+        $table->text('section');
+        $table->text('nama_atasan');
+        $table->string('tanda_tangan');
+        $table->foreignId('jam_kerja_id')->constrained('jam_kerjas')->onDelete('cascade');
         $table->integer('total_jam_kerja');
         $table->enum('status_pengajuan', ['menunggu', 'disetujui', 'ditolak'])->default('menunggu');
         $table->datetime('tgl_status')->nullable();
