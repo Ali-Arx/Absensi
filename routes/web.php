@@ -6,6 +6,7 @@ use App\Http\Controllers\CutiController;
 use App\Http\Controllers\LemburController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AbsensiController;
+use App\Http\Controllers\PenggunaController;
 
 // ROUTE UTAMA / LOGIN (guest)
 Route::middleware('guest')->group(function () {
@@ -70,7 +71,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/cuti/riwayat/export', [CutiController::class, 'export'])->name('cuti.riwayat.export');
 });
 
-    // Fitur Absensi (semua role login boleh akses)
+    // Fitur Absensi 
     Route::get('/absensi/create', [AbsensiController::class, 'create'])->name('absensi.create');
     Route::post('/absensi/store', [AbsensiController::class, 'store'])->name('absensi.store');
     Route::get('/absensi/riwayat', [AbsensiController::class, 'riwayat'])->name('absensi.riwayat');
@@ -82,7 +83,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Fitur Lembur (semua role login boleh akses)
+    // Fitur Lembur 
     Route::middleware(['auth'])->group(function () {
     Route::get('/lembur/create', [LemburController::class, 'create'])->name('lembur.create');
     Route::post('/lembur/store', [LemburController::class, 'store'])->name('lembur.store');
@@ -94,7 +95,7 @@ Route::middleware('auth')->group(function () {
 });
 
 
-    // Fitur Jam Kerja (hanya HR yang boleh akses)
+    // Fitur Jam Kerja 
     Route::middleware('role:hr')->group(function () {
         Route::get('/jam-kerja', [DashboardController::class, 'jamKerja'] )->name('jam-kerja.index');
         Route::get('/jam-kerja/create', [DashboardController::class, 'createJamKerja'] )->name('jam-kerja.create');
@@ -104,14 +105,14 @@ Route::middleware('auth')->group(function () {
         Route::delete('/jam-kerja/{id}', [DashboardController::class, 'deleteJamKerja'] )->name('jam-kerja.delete');
     });
 
-    // Fitur User Management (hanya HR yang boleh akses)
+    // Fitur User Management 
     Route::middleware('role:hr')->group(function () {
-        Route::get('/pengguna', [DashboardController::class, 'pengguna'] )->name('pengguna.index');
-        Route::get('/pengguna/create', [DashboardController::class, 'create'] )->name('pengguna.create');
-        Route::post('/pengguna', [DashboardController::class, 'store'] )->name('pengguna.store');
-        Route::get('/pengguna/{id}/edit', [DashboardController::class, 'edit'] )->name('pengguna.edit');
-        Route::put('/pengguna/{id}', [DashboardController::class, 'update'] )->name('pengguna.update');
-        Route::delete('/pengguna/{id}', [DashboardController::class, 'delete'] )->name('pengguna.delete');
+        Route::get('/pengguna', [PenggunaController::class, 'index'] )->name('pengguna.index');
+        Route::get('/pengguna/create', [PenggunaController::class, 'create'] )->name('pengguna.create');
+        Route::post('/pengguna', [PenggunaController::class, 'store'] )->name('pengguna.store');
+        Route::get('/pengguna/{id}/edit', [PenggunaController::class, 'edit'] )->name('pengguna.edit');
+        Route::put('/pengguna/{id}', [PenggunaController::class, 'update'] )->name('pengguna.update');
+        Route::delete('/pengguna/{id}', [PenggunaController::class, 'delete'] )->name('pengguna.delete');
     });
 });
 

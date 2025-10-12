@@ -178,7 +178,7 @@
                                     @if ($masuk && $pulang)
                                         <span class="badge bg-success">Hadir</span>
                                     @elseif ($masuk && !$pulang)
-                                        <span class="badge bg-warning text-dark">Belum Pulang</span>
+                                        <span class="badge bg-warning text-dark">Terlambat</span>
                                     @else
                                         <span class="badge bg-danger">Tidak Hadir</span>
                                     @endif
