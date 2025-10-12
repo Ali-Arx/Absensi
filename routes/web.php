@@ -45,7 +45,7 @@ Route::middleware('auth')->group(function () {
 
     // Atasan
     Route::middleware('role:atasan')->group(function () {
-        Route::get('/dashboard/atasan', fn() => view('dashboard.atasan'))->name('dashboard.atasan');
+        Route::get('/dashboard/atasan', [DashboardController::class, 'atasan'])->name('dashboard.atasan');
     });
 
     // Karyawan

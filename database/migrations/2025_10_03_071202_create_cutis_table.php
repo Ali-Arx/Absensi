@@ -20,6 +20,8 @@ return new class extends Migration
         $table->date('tgl_selesai');
         $table->string('alasan');
         $table->string('jenis_cuti');
+        $table->string('nama_atasan');
+        $table->string('tanda_tangan');
         $table->enum('status_pengajuan', ['menunggu', 'disetujui', 'ditolak'])->default('menunggu');
         $table->datetime('tgl_status')->nullable();
         $table->timestamps();

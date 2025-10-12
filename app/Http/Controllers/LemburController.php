@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Lembur;
 use App\Models\JamKerja;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
 
 class LemburController extends Controller
 {
@@ -26,17 +26,27 @@ class LemburController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'tanggal' => 'required|date',
+            'tgl_pengajuan' => 'required|date',
             'section' => 'nullable|string|max:100',
             'jam_kerja_id' => 'required|exists:jam_kerjas,id',
-            'jam_masuk' => 'required',
-            'jam_keluar' => 'required',
-            'departemen' => 'required|string',
-            'nama_karyawan' => 'required|string|max:100',
+            'tgl_jam_mulai' => 'required',
+            'tgl_jam_selesai' => 'required',
             'nama_atasan' => 'required|string|max:100',
-            'job_description' => 'required|string',
-            'tanda_tangan' => 'required|string', // base64 dari canvas
+            'deskripsi_kerja' => 'required|string',
+            'tanda_tangan' => 'required|string', 
         ]);
+
+        $mulai = Carbon::createFromFormat('H:i', $request->tgl_jam_mulai);
+        $selesai = Carbon::createFromFormat('H:i', $request->tgl_jam_selesai);
+
+       
+        if ($selesai->lessThan($mulai)) {
+            $selesai->addDay();
+        }
+
+        // Hitung total jam (dengan desimal, misal 8.5 jam)
+        $totalJamKerja = $mulai->floatDiffInHours($selesai);
+
 
         // Simpan paraf sebagai file gambar
         $imageData = $request->input('paraf');
@@ -51,21 +61,19 @@ class LemburController extends Controller
         // Simpan ke database
         Lembur::create([
             'user_id' => Auth::id(),
-            'tgl_pengajuan' => $request->tanggal,
+            'tgl_pengajuan' => $request->tgl_pengajuan,
             'section' => $request->section,
             'jam_kerja_id' => $request->jam_kerja_id,
-            'jam_masuk' => $request->jam_masuk,
-            'jam_keluar' => $request->jam_keluar,
-            'departemen' => $request->departemen,
-            'nama_karyawan' => $request->nama_karyawan,
+            'tgl_jam_mulai' => $request->tgl_jam_mulai,
+            'tgl_jam_selesai' => $request->tgl_jam_selesai,
             'nama_atasan' => $request->nama_atasan,
-            'job_description' => $request->job_description,
-            'paraf' => $imagePath,
-            'status' => 'Diajukan',
-            'tgl_pengajuan' => Carbon::now(),
+            'total_jam_kerja' => $totalJamKerja,
+            'tanda_tangan' => $imagePath,
+            'deskripsi_kerja' => $request->deskripsi_kerja,
+            'status_pengajuan' => 'menunggu',
         ]);
 
-        return redirect()->route('lembur.data')->with('success', 'Pengajuan lembur berhasil dikirim.');
+        return redirect()->route('lembur.create')->with('success', 'Pengajuan lembur berhasil dikirim.');
     }
 
     /**

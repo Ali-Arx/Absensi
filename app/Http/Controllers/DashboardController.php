@@ -10,4 +10,9 @@ class DashboardController extends Controller
     {
         return view('dashboard.hr');
     }
+
+    public function atasan()
+    {
+        return view('dashboard.atasan');
+    }
 }
