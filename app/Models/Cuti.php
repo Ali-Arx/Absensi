@@ -10,7 +10,7 @@ class cuti extends Model
     protected $fillable = [
         'id',
         'user_id',
-        'approval_id',
+        'approver_id',
         'tgl_pengajuan',
         'tgl_mulai',
         'tgl_selesai',

@@ -15,6 +15,7 @@ class Lembur extends Model
         'user_id',
         'tgl_pengajuan',
         'section',
+        'approver_id',
         'jam_kerja_id',
         'tgl_jam_mulai',
         'tgl_jam_selesai',
@@ -34,5 +35,10 @@ class Lembur extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approver_id');
     }
 }

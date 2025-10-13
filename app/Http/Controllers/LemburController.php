@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Lembur;
 use App\Models\JamKerja;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -17,7 +18,26 @@ class LemburController extends Controller
     public function create()
     {
         $jamKerjas = JamKerja::all(); // ambil daftar shift
-        return view('lembur.create', compact('jamKerjas'));
+
+
+        $user = Auth::user();
+        $approvalUsers = [];
+
+        if ($user->departement === 'Office') {
+            // Ambil user dengan jabatan/role tertentu
+            $approvalUsers = User::whereIn('name', ['Direktur Utama', 'Atasan Produksi'])->get();
+        } elseif ($user->departement === 'Produksi') {
+            $approvalUsers = User::whereIn('name', ['Direktur Utama', 'Atasan Produksi'])->get();
+        } elseif ($user->departement === 'HRD') {
+            $approvalUsers = User::whereIn('name', ['Direktur Utama'])->get();
+        } elseif ($user->departement === 'Gudang') {
+            $approvalUsers = User::whereIn('name', ['Direktur Utama', 'Atasan Produksi'])->get();
+        } else {
+
+            $approvalUsers = 'Nama Atasan Tidak Tersedia';
+        }
+
+        return view('lembur.create', compact('jamKerjas', 'approvalUsers'));
     }
 
     /**
@@ -31,15 +51,21 @@ class LemburController extends Controller
             'jam_kerja_id' => 'required|exists:jam_kerjas,id',
             'tgl_jam_mulai' => 'required',
             'tgl_jam_selesai' => 'required',
-            'nama_atasan' => 'required|string|max:100',
+            'approver_id' => 'required',
             'deskripsi_kerja' => 'required|string',
-            'tanda_tangan' => 'required|string', 
+            'tanda_tangan' => 'required|string',
+
         ]);
+
+        $approverId = $request->approver_id;
+
+
+
 
         $mulai = Carbon::createFromFormat('H:i', $request->tgl_jam_mulai);
         $selesai = Carbon::createFromFormat('H:i', $request->tgl_jam_selesai);
 
-       
+
         if ($selesai->lessThan($mulai)) {
             $selesai->addDay();
         }
@@ -66,7 +92,7 @@ class LemburController extends Controller
             'jam_kerja_id' => $request->jam_kerja_id,
             'tgl_jam_mulai' => $request->tgl_jam_mulai,
             'tgl_jam_selesai' => $request->tgl_jam_selesai,
-            'nama_atasan' => $request->nama_atasan,
+            'approver_id' => $approverId,
             'total_jam_kerja' => $totalJamKerja,
             'tanda_tangan' => $imagePath,
             'deskripsi_kerja' => $request->deskripsi_kerja,
@@ -99,10 +125,27 @@ class LemburController extends Controller
     /**
      * Menampilkan halaman approval untuk atasan
      */
-    public function approvalIndex()
+    public function approvalIndex(Request $request)
     {
-        $lemburs = Lembur::where('status_pengajuan', 'Diajukan')->orderBy('tgl_pengajuan', 'desc')->get();
-        return view('lembur.approval', compact('lemburs'));
+        $user = Auth::user();
+
+        $status = $request->get('status', '');
+        $bulan = $request->get('bulan', date('n'));
+        $tahun = $request->get('tahun', date('Y'));
+
+        $query = Lembur::with('user', 'approver')
+            ->whereMonth('tgl_pengajuan', $bulan)
+            ->whereYear('tgl_pengajuan', $tahun)
+            ->where('approver_id', $user->id); // ✅ hanya tampilkan pengajuan untuk approver yang sedang login
+
+        // Optional filter status
+        if ($status) {
+            $query->where('status_pengajuan', $status);
+        }
+
+        $lemburs = $query->paginate(10);
+
+        return view('lembur.approval', compact('lemburs', 'bulan', 'tahun'));
     }
 
     /**
