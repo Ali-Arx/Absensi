@@ -87,7 +87,7 @@ class CutiController extends Controller
             });
         } elseif ($user->role === 'direktur') {
             $query->whereHas('user', function ($q) {
-                $q->where('role', 'har');
+                $q->where('role', 'hr');
             });
         } else {
             // Jika bukan HR (misal atasan), tampilkan cuti yang harus dia approve
@@ -190,4 +190,15 @@ class CutiController extends Controller
 
         return view('cuti.data', compact('cutis', 'bulan', 'tahun'));
     }
+
+    public function show($id)
+{
+    $cuti = Cuti::with('user')->findOrFail($id);
+
+    // Kirim dalam format JSON untuk AJAX
+    return response()->json($cuti);
 }
+
+}
+
+

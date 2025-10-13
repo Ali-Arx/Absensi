@@ -7,6 +7,7 @@ use App\Http\Controllers\LemburController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\PenggunaController;
+use App\Http\Controllers\auth\PasswordController;
 
 // ROUTE UTAMA / LOGIN (guest)
 Route::middleware('guest')->group(function () {
@@ -59,16 +60,19 @@ Route::middleware('auth')->group(function () {
     Route::post('/cuti', [CutiController::class, 'store'])->name('cuti.store');
     
     Route::get('/cuti/riwayat', [CutiController::class, 'riwayat'])->name('cuti.riwayat');
-    Route::get('/cuti/data', [CutiController::class, 'data'])->name('cuti.data');
-    Route::get(uri: '/cuti/data/export', action: [CutiController::class, 'exportData'])->name(name: 'cuti.data.export');
-    Route::get(uri: '/cuti/data/filter', action: [CutiController::class, 'filterData'])->name(name: 'cuti.data.filter');
-    Route::get(uri: '/cuti/show', action: [CutiController::class, 'show'])->name(name: 'cuti.show');
+    Route::get('/cuti/riwayat/export', [CutiController::class, 'export'])->name('cuti.riwayat.export');
     
-    // Approval Routes
+    Route::get('/cuti/data', [CutiController::class, 'data'])->name('cuti.data');
+    Route::get('/cuti/data/export', [CutiController::class, 'exportData'])->name('cuti.data.export');
+    Route::get('/cuti/data/filter', [CutiController::class, 'filterData'])->name('cuti.data.filter');
+    
+    // Route approval 
     Route::get('/cuti/approval', [CutiController::class, 'approvalIndex'])->name('cuti.approval');
     Route::post('/cuti/{cuti}/approve', [CutiController::class, 'approve'])->name('cuti.approve');
     Route::post('/cuti/{cuti}/reject', [CutiController::class, 'reject'])->name('cuti.reject');
-    Route::get('/cuti/riwayat/export', [CutiController::class, 'export'])->name('cuti.riwayat.export');
+    
+    // Route dengan parameter {id} 
+    Route::get('/cuti/{id}', [CutiController::class, 'show'])->name('cuti.show');
 });
 
     // Fitur Absensi 
@@ -82,7 +86,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::patch('/profile', action: [ProfileController::class,'password'])->name('profile.password');
+    Route::put('/profile/password', action: [PasswordController::class,'update'])->name('profile.password');
 
     // Fitur Lembur 
     Route::middleware(['auth'])->group(function () {

@@ -122,137 +122,98 @@ class AbsensiController extends Controller
     }
 
 
-    public function export(Request $request)
-    {
-        $user = Auth::user();
-        if (!$user) {
-            return redirect()->back()->with('error', 'Anda belum login.');
-        }
+public function export(Request $request)
+{
+    $user = Auth::user();
+    if (!$user) {
+        return redirect()->back()->with('error', 'Anda belum login.');
+    }
 
-        // 🔹 Ambil parameter filter
-        $bulan = $request->get('bulan', date('n'));
-        $tahun = $request->get('tahun', date('Y'));
-        $status = $request->get('status', '');
+    // Ambil bulan & tahun (default: bulan & tahun sekarang)
+    $bulanInput = $request->get('bulan', date('n'));
+    $tahun = $request->get('tahun', date('Y'));
 
-        // 🔹 Query data absensi
-        $query = Absensi::where('user_id', $user->id)
-            ->whereMonth('tanggal_waktu', $bulan)
-            ->whereYear('tanggal_waktu', $tahun)
-            ->with('jamKerja');
+    // Konversi nama bulan ke angka
+    $bulanMap = [
+        'Januari' => 1, 'Februari' => 2, 'Maret' => 3, 'April' => 4,
+        'Mei' => 5, 'Juni' => 6, 'Juli' => 7, 'Agustus' => 8,
+        'September' => 9, 'Oktober' => 10, 'November' => 11, 'Desember' => 12
+    ];
+    $bulan = $bulanMap[$bulanInput] ?? (int)$bulanInput;
 
-        $absensisData = $query->orderBy('tanggal_waktu', 'asc')
-            ->get()
-            ->groupBy(function ($item) {
-                return Carbon::parse($item->tanggal_waktu)->format('Y-m-d');
-            });
+    // Ambil semua data absensi user untuk bulan & tahun tersebut (tanpa filter status/search)
+    $absensisData = Absensi::where('user_id', $user->id)
+        ->whereMonth('tanggal_waktu', $bulan)
+        ->whereYear('tanggal_waktu', $tahun)
+        ->with('jamKerja')
+        ->orderBy('tanggal_waktu', 'asc')
+        ->get()
+        ->groupBy(fn($item) => Carbon::parse($item->tanggal_waktu)->format('Y-m-d'));
 
-        // 🔹 Filter berdasarkan status jika ada
-        if ($status) {
-            $absensisData = $absensisData->filter(function ($records) use ($status) {
-                $masuk = $records->firstWhere('tipe_absen', 'masuk');
-                $pulang = $records->firstWhere('tipe_absen', 'pulang');
+    $bulanNama = [
+        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+    ];
 
-                if ($status === 'hadir') {
-                    return $masuk && $pulang;
-                } elseif ($status === 'terlambat') {
-                    return $masuk && !$pulang;
-                } elseif ($status === 'tidak_hadir') {
-                    return !$masuk && !$pulang;
-                }
+    $fileName = 'Riwayat_Absensi_' . $user->name . '_' . $bulanNama[$bulan] . '_' . $tahun . '.csv';
 
-                return true;
-            });
-        }
+    $headers = [
+        'Content-Type' => 'text/csv; charset=UTF-8',
+        'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+    ];
 
-        // 🔹 Nama file
-        $bulanNama = [
-            1 => 'Januari',
-            2 => 'Februari',
-            3 => 'Maret',
-            4 => 'April',
-            5 => 'Mei',
-            6 => 'Juni',
-            7 => 'Juli',
-            8 => 'Agustus',
-            9 => 'September',
-            10 => 'Oktober',
-            11 => 'November',
-            12 => 'Desember'
-        ];
-        $fileName = 'Riwayat_Absensi_' . $user->name . '_' . $bulanNama[$bulan] . '_' . $tahun . '.csv';
+    $callback = function () use ($absensisData, $user) {
+        $file = fopen('php://output', 'w');
+        fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM
 
-        // 🔹 Header CSV
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
-            'Pragma' => 'no-cache',
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires' => '0'
-        ];
+        $delimiter = ';'; // agar Excel Indonesia baca dengan benar
 
-        // 🔹 Callback untuk generate CSV
-        $callback = function () use ($absensisData, $user) {
-            $file = fopen('php://output', 'w');
+        fputcsv($file, [
+            'No', 'Departemen', 'Nama', 'No ID', 'Tanggal',
+            'Waktu Masuk', 'Waktu Pulang', 'Total Jam', 'Shift', 'Keterangan'
+        ], $delimiter);
 
-            // Add BOM for UTF-8
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+        $no = 1;
+        foreach ($absensisData as $tanggal => $records) {
+            $masuk = $records->firstWhere('tipe_absen', 'masuk');
+            $pulang = $records->firstWhere('tipe_absen', 'pulang');
 
-            // Header kolom
-            fputcsv($file, [
-                'No',
-                'Departemen',
-                'Nama',
-                'No ID',
-                'Tanggal',
-                'Waktu Masuk',
-                'Waktu Pulang',
-                'Total Jam',
-                'Shift',
-                'Keterangan'
-            ]);
-
-            // Data rows
-            $no = 1;
-            foreach ($absensisData as $tanggal => $records) {
-                $masuk = $records->firstWhere('tipe_absen', 'masuk');
-                $pulang = $records->firstWhere('tipe_absen', 'pulang');
-
-                // Hitung total jam
-                $totalJam = '-';
-                if ($masuk && $pulang) {
-                    $totalJam = gmdate('H:i:s', strtotime($pulang->tanggal_waktu) - strtotime($masuk->tanggal_waktu));
-                }
-
-                // Tentukan keterangan
-                $keterangan = 'Tidak Hadir';
-                if ($masuk && $pulang) {
-                    $keterangan = 'Hadir';
-                } elseif ($masuk && !$pulang) {
-                    $keterangan = 'Terlambat';
-                }
-
-                // Ambil nama shift
-                $shift = $masuk ? ($masuk->jamKerja->nama_shift ?? '-') : '-';
-
-                fputcsv($file, [
-                    $no++,
-                    $user->departement ?? '-',
-                    $user->name,
-                    $user->badge_number ?? '-',
-                    Carbon::parse($tanggal)->format('d/m/Y'),
-                    $masuk ? date('H:i', strtotime($masuk->tanggal_waktu)) : '-',
-                    $pulang ? date('H:i', strtotime($pulang->tanggal_waktu)) : '-',
-                    $totalJam,
-                    $shift,
-                    $keterangan
-                ]);
+            $totalJam = '-';
+            if ($masuk && $pulang) {
+                $totalJam = gmdate('H:i:s', strtotime($pulang->tanggal_waktu) - strtotime($masuk->tanggal_waktu));
             }
 
-            fclose($file);
-        };
+            $keterangan = 'Tidak Hadir';
+            if ($masuk && $pulang) {
+                $keterangan = 'Hadir';
+            } elseif ($masuk && !$pulang) {
+                $keterangan = 'Terlambat';
+            }
 
-        return response()->stream($callback, 200, $headers);
-    }
+            $shift = $masuk ? ($masuk->jamKerja->nama_shift ?? '-') : '-';
+
+            fputcsv($file, [
+                $no++,
+                $user->departement ?? '-',
+                $user->name,
+                $user->badge_number ?? '-',
+                Carbon::parse($tanggal)->format('d/m/Y'),
+                $masuk ? Carbon::parse($masuk->tanggal_waktu)->format('H:i') : '-',
+                $pulang ? Carbon::parse($pulang->tanggal_waktu)->format('H:i') : '-',
+                $totalJam,
+                $shift,
+                $keterangan
+            ], $delimiter);
+        }
+
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
+
+
 
     public function data(Request $request)
     {

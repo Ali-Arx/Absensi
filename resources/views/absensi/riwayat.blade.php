@@ -9,74 +9,77 @@
 
     <div class="card shadow mb-4 border-0">
         <div class="card-body">
-            {{-- Filter Section --}}
-            <form method="GET" action="{{ route('absensi.riwayat') }}" id="filterForm">
-                <div class="row mb-3 align-items-end">
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Bulan</label>
-                        <select name="bulan" class="form-select" id="bulanFilter" onchange="applyFilter()">
-                            <option value="1" {{ request('bulan', date('n')) == 1 ? 'selected' : '' }}>Januari</option>
-                            <option value="2" {{ request('bulan', date('n')) == 2 ? 'selected' : '' }}>Februari
+            {{-- Filter & Search Section --}}
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form id="filterForm" action="{{ route('absensi.riwayat') }}" method="GET">
+            <div class="row align-items-end">
+                {{-- Bulan --}}
+                <div class="col-md-3">
+                    <label for="bulan">Bulan</label>
+                    <select class="form-control" id="bulan" name="bulan">
+                        @foreach (['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'] as $b)
+                            <option value="{{ $b }}" {{ request('bulan', date('F')) == $b ? 'selected' : '' }}>
+                                {{ $b }}
                             </option>
-                            <option value="3" {{ request('bulan', date('n')) == 3 ? 'selected' : '' }}>Maret</option>
-                            <option value="4" {{ request('bulan', date('n')) == 4 ? 'selected' : '' }}>April</option>
-                            <option value="5" {{ request('bulan', date('n')) == 5 ? 'selected' : '' }}>Mei</option>
-                            <option value="6" {{ request('bulan', date('n')) == 6 ? 'selected' : '' }}>Juni</option>
-                            <option value="7" {{ request('bulan', date('n')) == 7 ? 'selected' : '' }}>Juli</option>
-                            <option value="8" {{ request('bulan', date('n')) == 8 ? 'selected' : '' }}>Agustus</option>
-                            <option value="9" {{ request('bulan', date('n')) == 9 ? 'selected' : '' }}>September
-                            </option>
-                            <option value="10" {{ request('bulan', date('n')) == 10 ? 'selected' : '' }}>Oktober
-                            </option>
-                            <option value="11" {{ request('bulan', date('n')) == 11 ? 'selected' : '' }}>November
-                            </option>
-                            <option value="12" {{ request('bulan', date('n')) == 12 ? 'selected' : '' }}>Desember
-                            </option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Tahun</label>
-                        <input type="number" name="tahun" class="form-control" value="{{ request('tahun', date('Y')) }}"
-                            min="2020" max="2030" onchange="applyFilter()">
-                    </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Status</label>
-                        <select name="status" class="form-select" onchange="applyFilter()">
-                            <option value="" {{ request('status') == '' ? 'selected' : '' }}>Semua Status</option>
-                            <option value="hadir" {{ request('status') == 'hadir' ? 'selected' : '' }}>Hadir</option>
-                            <option value="belum_pulang" {{ request('status') == 'belum_pulang' ? 'selected' : '' }}>
-                                Terlambat</option>
-                            <option value="tidak_hadir" {{ request('status') == 'tidak_hadir' ? 'selected' : '' }}>Tidak
-                                Hadir</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-3 text-end">
-                        <button type="button" class="btn btn-outline-secondary me-2" onclick="refreshData()"
-                            title="Refresh">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary me-2" onclick="toggleSort()"
-                            title="Urutkan">
-                            <i class="fas fa-sort-amount-down" id="sortIcon"></i>
-                        </button>
-                        <button type="button" class="btn btn-primary" onclick="exportData()" title="Export">
-                            <i class="fas fa-file-export me-1"></i> Export
-                        </button>
-                        <input type="hidden" name="sort" id="sortInput" value="{{ request('sort', 'desc') }}">
-                    </div>
+                        @endforeach
+                    </select>
                 </div>
-            </form>
 
-            {{-- Search Bar --}}
-            <div class="row mb-3">
-                <div class="col-md-4 ms-auto">
-                    <input type="text" class="form-control" id="searchInput"
-                        placeholder="Cari tanggal, waktu, atau keterangan..." onkeyup="searchTable()">
+                {{-- Tahun --}}
+                <div class="col-md-2">
+                    <label for="tahun">Tahun</label>
+                    <input type="number" class="form-control" id="tahun" name="tahun"
+                        value="{{ request('tahun', date('Y')) }}" min="2020" max="2099">
+                </div>
+
+                {{-- Status --}}
+                <div class="col-md-3">
+                    <label for="status">Status</label>
+                    <select class="form-control" id="status" name="status">
+                        <option value="">Semua Status</option>
+                        <option value="hadir" {{ request('status') == 'hadir' ? 'selected' : '' }}>Hadir</option>
+                        <option value="terlambat" {{ request('status') == 'terlambat' ? 'selected' : '' }}>Terlambat</option>
+                        <option value="izin" {{ request('status') == 'izin' ? 'selected' : '' }}>Izin</option>
+                        <option value="sakit" {{ request('status') == 'sakit' ? 'selected' : '' }}>Sakit</option>
+                        <option value="alpha" {{ request('status') == 'alpha' ? 'selected' : '' }}>Alpha</option>
+                    </select>
+                </div>
+
+                {{-- Search --}}
+                <div class="col-md-4">
+                    <label for="search">Pencarian</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="search" name="search"
+                            placeholder="Cari tanggal, waktu, atau keterangan..."
+                            value="{{ request('search') }}">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            {{-- Tombol Aksi --}}
+            <div class="mt-3 d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary me-2">
+                    <i class="fas fa-filter me-1"></i> Terapkan
+                </button>
+
+                <a href="{{ route('absensi.riwayat') }}" class="btn btn-secondary me-2">
+                    <i class="fas fa-sync-alt me-1"></i> Reset
+                </a>
+
+                <button type="button" class="btn btn-success" onclick="exportData()">
+                    <i class="fas fa-file-export me-1"></i> Export
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+            
 
             {{-- Table Section --}}
             <div class="table-responsive">
@@ -289,6 +292,7 @@
                     exportUrl += "&status=" + status;
                 }
 
+                console.log("Export URL:", exportUrl); // untuk debug
                 window.location.href = exportUrl;
             }
 
@@ -322,10 +326,6 @@
                 sortIcon.classList.toggle('fa-sort-amount-down');
                 sortIcon.classList.toggle('fa-sort-amount-up');
                 document.getElementById('filterForm').submit();
-            }
-
-            function exportData() {
-                alert('Export data masih dalam pengembangan 🛠️');
             }
         </script>
     @endpush

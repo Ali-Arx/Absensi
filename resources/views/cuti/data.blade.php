@@ -119,11 +119,12 @@
                                     <td>{{ $cuti->tanggal_disetujui ? \Carbon\Carbon::parse($cuti->tanggal_disetujui)->format('d/m/Y') : '-' }}
                                     </td>
                                     <td class="text-center">
-                                        <a href="{{ route('cuti.show', $cuti->id) }}"
-                                            class="btn btn-sm btn-info text-white">
+                                        <button type="button" class="btn btn-sm btn-info text-white btn-lihat"
+                                            data-id="{{ $cuti->id }}">
                                             <i class="fas fa-eye"></i> Lihat
-                                        </a>
+                                        </button>
                                     </td>
+
                                 </tr>
                             @empty
                                 <tr>
@@ -135,6 +136,163 @@
                 </div>
             </div>
         </div>
-
     </div>
+
+    <!-- Modal Lihat Detail Cuti -->
+<div class="modal fade" id="modalDetailCuti" tabindex="-1" aria-labelledby="detailCutiLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold" id="detailCutiLabel">
+                    <i class="fas fa-file-alt me-2"></i> Detail Pengajuan Cuti
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered mb-0">
+                    <tbody>
+                        <tr>
+                            <th width="30%">Nama Pegawai</th>
+                            <td id="detail-nama"></td>
+                        </tr>
+                        <tr>
+                            <th>No ID</th>
+                            <td id="detail-badge"></td>
+                        </tr>
+                        <tr>
+                            <th>Jenis Cuti</th>
+                            <td id="detail-jenis"></td>
+                        </tr>
+                        <tr>
+                            <th>Tanggal Mulai</th>
+                            <td id="detail-mulai"></td>
+                        </tr>
+                        <tr>
+                            <th>Tanggal Selesai</th>
+                            <td id="detail-selesai"></td>
+                        </tr>
+                        <tr>
+                            <th>Lama Cuti</th>
+                            <td id="detail-lama"></td>
+                        </tr>
+                        <tr>
+                            <th>Alasan</th>
+                            <td id="detail-alasan"></td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td id="detail-status"></td>
+                        </tr>
+                        <tr>
+                            <th>Diajukan Pada</th>
+                            <td id="detail-dibuat"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCloseModal">
+                    <i class="fas fa-times"></i> Tutup
+                </button>
+                <div id="action-buttons"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modalElement = document.getElementById('modalDetailCuti');
+    const modal = new bootstrap.Modal(modalElement);
+    const buttons = document.querySelectorAll('.btn-lihat');
+    const closeButton = document.getElementById('btnCloseModal');
+    const actionDiv = document.getElementById('action-buttons');
+
+    // ✅ Fungsi format tanggal (pastikan ini ada di tempat kamu)
+    function formatTanggal(dateString) {
+        const options = { day: '2-digit', month: 'long', year: 'numeric' };
+        return new Date(dateString).toLocaleDateString('id-ID', options);
+    }
+
+    // ✅ Fungsi untuk menutup modal
+    function closeModal() {
+        modal.hide();
+    }
+
+    // Klik tombol “Lihat”
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.id;
+
+            fetch(`/cuti/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Isi data ke modal
+                    document.getElementById('detail-nama').textContent = data.user?.name ?? '-';
+                    document.getElementById('detail-badge').textContent = data.user?.badge_number ?? '-';
+                    document.getElementById('detail-jenis').textContent = data.jenis_cuti ?? '-';
+                    document.getElementById('detail-mulai').textContent = formatTanggal(data.tanggal_mulai);
+                    document.getElementById('detail-selesai').textContent = formatTanggal(data.tanggal_selesai);
+                    document.getElementById('detail-lama').textContent = `${data.lama_cuti} hari`;
+                    document.getElementById('detail-alasan').textContent = data.alasan ?? '-';
+                    document.getElementById('detail-dibuat').textContent = formatTanggal(data.created_at);
+
+                    // Status badge
+                    let statusBadge = '';
+                    switch (data.status) {
+                        case 'disetujui':
+                            statusBadge = '<span class="badge bg-success">Disetujui</span>';
+                            break;
+                        case 'ditolak':
+                            statusBadge = '<span class="badge bg-danger">Ditolak</span>';
+                            break;
+                        default:
+                            statusBadge = '<span class="badge bg-warning text-dark">Menunggu</span>';
+                    }
+                    document.getElementById('detail-status').innerHTML = statusBadge;
+
+                    // Tombol aksi (hanya jika status masih menunggu)
+                    if (data.status === 'menunggu') {
+                        actionDiv.innerHTML = `
+                            <form method="POST" action="/cuti/${data.id}/approve" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check"></i> Setujui
+                                </button>
+                            </form>
+                            <form method="POST" action="/cuti/${data.id}/reject" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-times"></i> Tolak
+                                </button>
+                            </form>
+                        `;
+                    } else {
+                        actionDiv.innerHTML = '';
+                    }
+
+                    // ✅ Tampilkan modal
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('❌ Gagal mengambil data cuti:', error);
+                    alert('Terjadi kesalahan saat mengambil data.');
+                });
+        });
+    });
+
+    // ✅ Tutup modal ketika tombol “Tutup” diklik
+    closeButton.addEventListener('click', function () {
+        closeModal();
+    });
+
+    function formatTanggal(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+        return date.toLocaleDateString('id-ID', options);
+    }
+});
+</script>
+
