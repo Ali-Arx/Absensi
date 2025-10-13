@@ -75,25 +75,25 @@
                     @forelse ($lemburs as $index => $item)
                     <tr>
                         <td class="text-center">{{ $index + 1 }}</td>
-                        <td>{{ $item->departemen }}</td>
-                        <td>{{ $item->nama_karyawan }}</td>
-                        <td>{{ $item->nama_atasan }}</td>
+                        <td>{{ $item->user->departement }}</td>
+                        <td>{{ $item->user->name }}</td>
+                        <td>{{ $item->approver?->name }}</td>
                         <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}</td>
-                        <td>{{ $item->shift }}</td>
-                        <td>{{ $item->mulai }}</td>
-                        <td>{{ $item->selesai }}</td>
-                        <td>{{ $item->job_description }}</td>
+                        <td>{{ $item->jamKerja?->shift }}</td>
+                        <td>{{ $item->tgl_jam_mulai }}</td>
+                        <td>{{ $item->tgl_jam_selesai }}</td>
+                        <td>{{ $item->deskripsi_kerja }}</td>
                         <td class="text-center">
-                            @if ($item->status == 'Menunggu')
+                            @if ($item->status_pengajuan == 'menunggu')
                                 <span class="badge bg-warning text-dark">Menunggu</span>
-                            @elseif ($item->status == 'Disetujui')
+                            @elseif ($item->status_pengajuan == 'disetujui')
                                 <span class="badge bg-success">Disetujui</span>
-                            @elseif ($item->status == 'Ditolak')
+                            @elseif ($item->status_pengajuan == 'ditolak')
                                 <span class="badge bg-danger">Ditolak</span>
                             @endif
                         </td>
                         <td class="text-center">
-                            <a href="{{ route('lembur.show', $item->id) }}" class="btn btn-info btn-sm" title="Detail">
+                            <a href="" class="btn btn-info btn-sm" title="Detail">
                                 <i class="fas fa-eye"></i>
                             </a>
                             <form action="{{ route('lembur.approve', $item->id) }}" method="POST" class="d-inline">

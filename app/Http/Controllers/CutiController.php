@@ -17,49 +17,63 @@ class CutiController extends Controller
 
     public function create()
     {
-        return view('cuti.create');
+        $user = Auth::user();
+        $approvalUsers = [];
+
+        if ($user->departement === 'Office') {
+            // Ambil user dengan jabatan/role tertentu
+            $approvalUsers = User::whereIn('name', ['Direktur Utama', 'Atasan Produksi'])->get();
+        } elseif ($user->departement === 'Produksi') {
+            $approvalUsers = User::whereIn('name', ['Direktur Utama', 'Atasan Produksi'])->get();
+        } elseif ($user->departement === 'HRD') {
+            $approvalUsers = User::whereIn('name', ['Direktur Utama'])->get();
+        } elseif ($user->departement === 'Gudang') {
+            $approvalUsers = User::whereIn('name', ['Direktur Utama', 'Atasan Produksi'])->get();
+        } else {
+         
+            $approvalUsers = 'Nama Atasan Tidak Tersedia';
+        }
+
+        return view('cuti.create', compact('approvalUsers'));
     }
 
     public function store(Request $request)
     {
+        // ✅ Validasi input
         $request->validate([
-            'tgl_mulai' => 'required|date',
-            'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',
-            'alasan' => 'required|string',
-            'jenis_cuti' => 'required|string',
-            'tanda_tangan' => 'required|string',
-            'nama_atasan' => 'required|string',
+            'tgl_mulai'     => 'required|date',
+            'tgl_selesai'   => 'required|date|after_or_equal:tgl_mulai',
+            'alasan'        => 'required|string',
+            'jenis_cuti'    => 'required|string',
+            'tanda_tangan'  => 'required|string',
+            'approver_id'   => 'required|exists:users,id',
         ]);
 
+        // ✅ Ambil user yang sedang login
         $user = Auth::user();
-        $approverId = null;
         $status = 'menunggu';
+        $approverId = $request->approver_id;
 
-        if ($user->role === 'karyawan') {
-              $approverId = User::where('role', 'atasan')->first()?->id;
-        } elseif ($user->role === 'atasan') {
-            $approverId = User::where('role', 'hr')->first()?->id;
-        } elseif ($user->role === 'hr') {
-            $approverId = User::where('role', 'direktur')->first()?->id;
-        } elseif ($user->role === 'direktur') {
-            $status = 'disetujui';
-        }
+        
 
+        // ✅ Simpan pengajuan cuti
         Cuti::create([
-            'user_id' => $user->id,
-            'tgl_pengajuan' => now(),
-            'tgl_mulai' => $request->tgl_mulai,
-            'tgl_selesai' => $request->tgl_selesai,
-            'alasan' => $request->alasan,
-            'jenis_cuti' => $request->jenis_cuti,
-            'approver_id' => $approverId,
+            'user_id'          => $user->id,
+            'tgl_pengajuan'    => now(),
+            'tgl_mulai'        => $request->tgl_mulai,
+            'tgl_selesai'      => $request->tgl_selesai,
+            'alasan'           => $request->alasan,
+            'jenis_cuti'       => $request->jenis_cuti,
             'status_pengajuan' => $status,
-            'nama_atasan' => $request->nama_atasan,
-            'tanda_tangan' => $request->tanda_tangan,
+            'approver_id'      => $approverId,
+            'tanda_tangan'     => $request->tanda_tangan,
         ]);
 
-        return redirect()->route('cuti.create')->with('success', 'Pengajuan cuti berhasil diajukan!');
+        return redirect()
+            ->route('cuti.create')
+            ->with('success', 'Pengajuan cuti berhasil diajukan!');
     }
+
 
     /**
      * Menampilkan halaman approval cuti (untuk atasan/HR/direktur)
@@ -74,27 +88,10 @@ class CutiController extends Controller
 
         $query = Cuti::with('user')
             ->whereMonth('tgl_pengajuan', $bulan)
-            ->whereYear('tgl_pengajuan', $tahun);
+            ->whereYear('tgl_pengajuan', $tahun)
+            ->where('approver_id', $user->id); // ✅ hanya tampilkan pengajuan untuk approver yang sedang login
 
-        // Jika HR login, tampilkan cuti yang diajukan oleh role 'atasan'
-        if ($user->role === 'hr') {
-            $query->whereHas('user', function ($q) {
-                $q->where('role', 'atasan');
-            });
-        } elseif ($user->role === 'atasan') {
-            $query->whereHas('user', function ($q) {
-                $q->where('role', 'karyawan');
-            });
-        } elseif ($user->role === 'direktur') {
-            $query->whereHas('user', function ($q) {
-                $q->where('role', 'hr');
-            });
-        } else {
-            // Jika bukan HR (misal atasan), tampilkan cuti yang harus dia approve
-            $query->where('approver_id', $user->id);
-        }
-
-
+        // Optional filter status
         if ($status) {
             $query->where('status_pengajuan', $status);
         }
@@ -103,6 +100,7 @@ class CutiController extends Controller
 
         return view('cuti.approval', compact('cutis', 'bulan', 'tahun'));
     }
+
 
 
     /**
@@ -192,13 +190,10 @@ class CutiController extends Controller
     }
 
     public function show($id)
-{
-    $cuti = Cuti::with('user')->findOrFail($id);
+    {
+        $cuti = Cuti::with('user')->findOrFail($id);
 
-    // Kirim dalam format JSON untuk AJAX
-    return response()->json($cuti);
+        // Kirim dalam format JSON untuk AJAX
+        return response()->json($cuti);
+    }
 }
-
-}
-
-
