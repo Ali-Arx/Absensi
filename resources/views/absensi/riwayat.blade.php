@@ -113,7 +113,7 @@
                                 if ($masuk && $pulang) {
                                     $statusKet = 'hadir';
                                 } elseif ($masuk && !$pulang) {
-                                    $statusKet = 'belum_pulang';
+                                    $statusKet = 'terlambat';
                                 } else {
                                     $statusKet = 'tidak_hadir';
                                 }

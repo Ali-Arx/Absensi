@@ -225,8 +225,8 @@
             </a>
             <div id="absensiDirektur" class="collapse">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item" href="{{ route('absensi.index') }}">Absensi</a>
-                    <a class="collapse-item" href="{{ route('absensi.riwayat.direktur') }}">Riwayat Absensi</a>
+                    <a class="collapse-item" href="{{ route('absensi.create') }}">Absensi</a>
+                    <a class="collapse-item" href="{{ route('absensi.riwayat') }}">Riwayat Absensi</a>
                 </div>
             </div>
         </li>
@@ -239,9 +239,9 @@
             </a>
             <div id="cutiDirektur" class="collapse">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item" href="{{ route('cuti.pengajuan') }}">Pengajuan Cuti</a>
-                    <a class="collapse-item" href="{{ route('cuti.riwayat.direktur') }}">Riwayat Cuti</a>
-                    <a class="collapse-item" href="{{ route('cuti.approval.hr') }}">Approval dari HR</a>
+                    <a class="collapse-item" href="{{ route('cuti.create') }}">Pengajuan Cuti</a>
+                    <a class="collapse-item" href="{{ route('cuti.riwayat') }}">Riwayat Cuti</a>
+                    <a class="collapse-item" href="{{ route('cuti.approval') }}">Approval dari HR</a>
                 </div>
             </div>
         </li>

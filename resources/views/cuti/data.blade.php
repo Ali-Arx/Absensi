@@ -106,11 +106,11 @@
                                     <td>{{ \Carbon\Carbon::parse($cuti->tanggal_selesai)->format('d/m/Y') }}</td>
                                     <td>{{ $cuti->alasan }}</td>
                                     <td>
-                                        @if ($cuti->status_pengajuan == 'Disetujui')
+                                        @if ($cuti->status_pengajuan == 'disetujui')
                                             <span class="badge bg-success">Disetujui</span>
                                         @elseif($cuti->status_pengajuan == 'menunggu')
-                                            <span class="badge bg-warning text-dark">menunggu</span>
-                                        @elseif($cuti->status_pengajuan == 'Diajukan')
+                                            <span class="badge bg-warning text-dark">Menunggu</span>
+                                        @elseif($cuti->status_pengajuan == 'diajukan')
                                             <span class="badge bg-warning text-dark">Diajukan</span>
                                         @else
                                             <span class="badge bg-danger">Ditolak</span>
@@ -275,11 +275,11 @@
                         // Status badge
                         let statusBadge = '';
                         switch (data.status_pengajuan) {
-                            case 'Disetujui':
+                            case 'disetujui':
                                 statusBadge =
                                     '<span class="badge bg-success">Disetujui</span>';
                                 break;
-                            case 'Ditolak':
+                            case 'ditolak':
                                 statusBadge =
                                     '<span class="badge bg-danger">Ditolak</span>';
                                 break;
