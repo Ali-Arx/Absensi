@@ -31,6 +31,7 @@ class Absensi extends Model
      * Cast ke datetime supaya gampang format
      */
     protected $casts = [
+        'tanggal_waktu' => 'datetime',
         'tgl_jam_masuk' => 'datetime',
         'tgl_jam_keluar' => 'datetime',
     ];
