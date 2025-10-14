@@ -91,54 +91,55 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table table-bordered text-center align-middle">
+                <table class="table table-bordered align-middle text-center" id="absensiTable">
                     <thead class="bg-light text-dark fw-semibold">
                         <tr>
                             <th>No</th>
                             <th>Departemen</th>
                             <th>Nama</th>
-                            <th>No ID</th>
+                            <th>Badge</th>
                             <th>Tanggal</th>
                             <th>Waktu In | Out</th>
-                            <th>Total Jam</th>
                             <th>Kode Verifikasi</th>
                             <th>Lokasi</th>
-                            <th>Keterangan</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($absensis as $item)
+                        @forelse ($absensis as $key => $records)
+                            @php
+                                $first = $records->first();
+                                $masuk = $records->firstWhere('tipe_absen', 'masuk');
+                                $pulang = $records->firstWhere('tipe_absen', 'pulang');
+                            @endphp
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                <td>{{ $item->user->departement ?? '-' }}</td>
-                                <td>{{ $item->user->name ?? '-' }}</td>
-                                <td>{{ $item->user->badge_number ?? '-' }}</td>
-                                <td>{{ \Carbon\Carbon::parse($item->tanggal_waktu)->format('d/m/Y') }}</td>
+                                <td>{{ $first->user->departement ?? '-' }}</td>
+                                <td>{{ $first->user->name ?? '-' }}</td>
+                                <td>{{ $first->user->badge_number ?? '-' }}</td>
+                                <td>{{ \Carbon\Carbon::parse($first->tanggal_waktu)->format('d/m/Y') }}</td>
 
                                 {{-- Kolom Waktu In | Out --}}
                                 <td>
                                     <div class="d-flex flex-column">
-                                        <span>{{ $item->waktu_in ? \Carbon\Carbon::parse($item->waktu_in)->format('H:i') : '-' }}</span>
-                                        <span class="text-muted">|</span>
-                                        <span>{{ $item->waktu_out ? \Carbon\Carbon::parse($item->waktu_out)->format('H:i') : '-' }}</span>
+                                        {{ $masuk ? date('H:i', strtotime($masuk->tanggal_waktu)) : '-' }}
+                                        |
+                                        {{ $pulang ? date('H:i', strtotime($pulang->tanggal_waktu)) : '-' }}
                                     </div>
                                 </td>
-
-                                {{-- Kolom Total Jam --}}
-                                <td>{{ $item->total_jam ?? '-' }}</td>
 
                                 {{-- Kolom Kode Verifikasi --}}
                                 <td>
                                     <div class="d-flex flex-column align-items-center gap-1">
-                                        @if ($item->kode_verifikasi_in)
-                                            <img src="{{ asset('storage/' . $item->kode_verifikasi_in) }}" width="40"
-                                                height="40" class="rounded shadow-sm" style="object-fit: cover;">
+                                        @if ($masuk?->kode_verifikasi)
+                                            <img src="{{ asset('storage/' . $masuk->kode_verifikasi) }}" width="40"
+                                                height="40" class="rounded shadow-sm">
                                         @endif
-                                        @if ($item->kode_verifikasi_out)
-                                            <img src="{{ asset('storage/' . $item->kode_verifikasi_out) }}" width="40"
-                                                height="40" class="rounded shadow-sm" style="object-fit: cover;">
+                                        @if ($pulang?->kode_verifikasi)
+                                            <img src="{{ asset('storage/' . $pulang->kode_verifikasi) }}" width="40"
+                                                height="40" class="rounded shadow-sm">
                                         @endif
-                                        @if (!$item->kode_verifikasi_in && !$item->kode_verifikasi_out)
+                                        @if (!$masuk?->kode_verifikasi && !$pulang?->kode_verifikasi)
                                             <span class="text-muted">-</span>
                                         @endif
                                     </div>
@@ -147,40 +148,39 @@
                                 {{-- Kolom Lokasi --}}
                                 <td>
                                     <div class="d-flex flex-column align-items-center gap-1">
-                                        @if ($item->lokasi_in)
-                                            <a href="https://www.google.com/maps?q={{ $item->lokasi_in }}" target="_blank"
+                                        @if ($masuk?->lokasi)
+                                            <a href="https://www.google.com/maps?q={{ $masuk->lokasi }}" target="_blank"
                                                 class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-map-marker-alt"></i> Masuk
                                             </a>
                                         @endif
-                                        @if ($item->lokasi_out)
-                                            <a href="https://www.google.com/maps?q={{ $item->lokasi_out }}" target="_blank"
+                                        @if ($pulang?->lokasi)
+                                            <a href="https://www.google.com/maps?q={{ $pulang->lokasi }}" target="_blank"
                                                 class="btn btn-sm btn-outline-danger">
                                                 <i class="fas fa-map-marker-alt"></i> Pulang
                                             </a>
                                         @endif
-                                        @if (!$item->lokasi_in && !$item->lokasi_out)
+                                        @if (!$masuk?->lokasi && !$pulang?->lokasi)
                                             <span class="text-muted">-</span>
                                         @endif
                                     </div>
                                 </td>
 
-                                {{-- Kolom Keterangan --}}
+                                {{-- Kolom Status --}}
                                 <td>
                                     <span
                                         class="badge 
-                            @if ($item->keterangan == 'Hadir') bg-success
-                            @elseif ($item->keterangan == 'Terlambat') bg-warning text-dark
-                            @elseif ($item->keterangan == 'Izin') bg-info
-                            @elseif ($item->keterangan == 'Sakit') bg-secondary
-                            @else bg-danger @endif">
-                                        {{ ucfirst($item->keterangan ?? '-') }}
+                        @if ($records->status_hadir == 'Hadir') bg-success
+                        @elseif ($records->status_hadir == 'Hadir (Terlambat)') bg-warning text-dark
+                        @elseif ($records->status_hadir == 'Tidak Hadir') bg-danger
+                        @else bg-secondary @endif">
+                                        {{ ucfirst($records->status_hadir) }}
                                     </span>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center text-muted py-4">
+                                <td colspan="9" class="text-center text-muted py-4">
                                     <i class="fas fa-inbox fa-3x mb-3 text-secondary"></i>
                                     <p class="mb-0">Tidak ada data absensi.</p>
                                 </td>
@@ -188,18 +188,13 @@
                         @endforelse
                     </tbody>
                 </table>
+
+                <div class="mt-3 text-muted">
+                    Menampilkan {{ $absensis->count() }} data absensi (semua user)
+                </div>
+
             </div>
 
-
-            {{-- Pagination --}}
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <div class="text-muted">
-                    Menampilkan {{ $absensis->count() }} dari {{ $absensis->total() }} data
-                </div>
-                <div>
-                    {{ $absensis->appends(request()->query())->links() }}
-                </div>
-            </div>
         </div>
     </div>
 @endsection

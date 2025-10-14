@@ -108,22 +108,13 @@
                             @php
                                 $masuk = $records->firstWhere('tipe_absen', 'masuk');
                                 $pulang = $records->firstWhere('tipe_absen', 'pulang');
-
-                                // Tentukan status
-                                if ($masuk && $pulang) {
-                                    $statusKet = 'hadir';
-                                } elseif ($masuk && !$pulang) {
-                                    $statusKet = 'terlambat';
-                                } else {
-                                    $statusKet = 'tidak_hadir';
-                                }
                             @endphp
-                            <tr data-status="{{ $statusKet }}">
+                            <tr>
                                 <td>{{ $loop->iteration + ($absensis->currentPage() - 1) * $absensis->perPage() }}</td>
                                 <td>{{ $user->departement ?? '-' }}</td>
                                 <td>{{ $user->name }}</td>
                                 <td>{{ $user->badge_number ?? '-' }}</td>
-                                <td>{{ \Carbon\Carbon::parse($tanggal)->format('d/m/y') }}</td>
+                                <td>{{ \Carbon\Carbon::parse($tanggal)->format('d/m/Y') }}</td>
                                 <td>
                                     {{ $masuk ? date('H:i', strtotime($masuk->tanggal_waktu)) : '-' }}
                                     |
@@ -137,7 +128,7 @@
                                     @endif
                                 </td>
 
-                                {{-- Foto Masuk dan Keluar --}}
+                                {{-- Foto Masuk & Pulang --}}
                                 <td>
                                     @if ($masuk && $masuk->foto)
                                         <img src="{{ asset('storage/' . $masuk->foto) }}" alt="Foto Masuk"
@@ -158,7 +149,7 @@
                                     @endif
                                 </td>
 
-                                {{-- Lokasi Masuk dan Pulang --}}
+                                {{-- Lokasi Masuk & Pulang --}}
                                 <td>
                                     @if ($masuk && $masuk->lokasi)
                                         @php [$lat, $lng] = explode(',', $masuk->lokasi); @endphp
@@ -166,8 +157,6 @@
                                             target="_blank" class="btn btn-sm btn-outline-primary mb-1">
                                             <i class="fas fa-map-marker-alt"></i> Masuk
                                         </a>
-                                    @else
-                                        <span class="text-muted d-block">-</span>
                                     @endif
 
                                     @if ($pulang && $pulang->lokasi)
@@ -176,31 +165,23 @@
                                             target="_blank" class="btn btn-sm btn-outline-danger">
                                             <i class="fas fa-map-marker-alt"></i> Pulang
                                         </a>
-                                    @else
-                                        <span class="text-muted d-block">-</span>
                                     @endif
                                 </td>
 
                                 {{-- Keterangan --}}
                                 <td>
-                                    @if (isset($masuk))
-                                        @php
-                                            $jamMasukNormal = \Carbon\Carbon::parse(
-                                                $masuk->jamKerja->jam_masuk ?? '08:00:00',
-                                            );
-                                            $jamMasukNyata = \Carbon\Carbon::parse($masuk->tanggal_waktu);
-                                        @endphp
-
-                                        @if ($jamMasukNyata->gt($jamMasukNormal))
+                                    @if ($masuk)
+                                        @if ($masuk->keterangan_dinamis === 'Hadir (Terlambat)')
                                             <span class="badge bg-warning text-dark">Hadir (Terlambat)</span>
-                                        @else
+                                        @elseif ($masuk->keterangan_dinamis === 'Hadir')
                                             <span class="badge bg-success">Hadir</span>
+                                        @else
+                                            <span class="badge bg-danger">Tidak Hadir</span>
                                         @endif
                                     @else
                                         <span class="badge bg-danger">Tidak Hadir</span>
                                     @endif
                                 </td>
-
                             </tr>
                         @empty
                             <tr>
@@ -210,6 +191,7 @@
                                 </td>
                             </tr>
                         @endforelse
+
                     </tbody>
                 </table>
             </div>

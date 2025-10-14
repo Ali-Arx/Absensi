@@ -14,28 +14,80 @@ class AbsensiController extends Controller
 {
     public function create(Request $request)
     {
-        $query = Absensi::with('user');
+        $user = Auth::user();
         $jamKerjas = JamKerja::all();
 
-        return view('absensi.create', compact('jamKerjas'));
+        // ✅ Cek status absensi hari ini
+        $absenMasuk = Absensi::where('user_id', $user->id)
+            ->whereDate('tanggal_waktu', now()->toDateString())
+            ->where('tipe_absen', 'masuk')
+            ->first();
+
+        $absenPulang = Absensi::where('user_id', $user->id)
+            ->whereDate('tanggal_waktu', now()->toDateString())
+            ->where('tipe_absen', 'pulang')
+            ->first();
+
+        $sudahAbsenMasuk = $absenMasuk !== null;
+        $sudahAbsenPulang = $absenPulang !== null;
+
+        // ✅ Jika sudah absen masuk, ambil shift otomatis untuk absen pulang
+        $selectedShift = $absenMasuk?->jam_kerja_id;
+
+        return view('absensi.create', compact('jamKerjas', 'sudahAbsenMasuk', 'sudahAbsenPulang', 'selectedShift'));
     }
+
+
 
     public function store(Request $request)
     {
-        $request->validate([
-            'tipe_absen' => 'required|in:masuk,pulang',
-            'jam_kerja_id' => 'required|exists:jam_kerjas,id',
-            'foto' => 'required',
-            'lokasi' => 'required|string|max:255',
-        ]);
-
         $user = Auth::user();
         if (!$user) {
             return redirect()->back()->with('error', 'Anda belum login.');
         }
 
-        // 🔹 Ambil shift
-        $jamKerja = JamKerja::find($request->jam_kerja_id);
+        $absenMasuk = Absensi::where('user_id', $user->id)
+            ->whereDate('tanggal_waktu', now()->toDateString())
+            ->where('tipe_absen', 'masuk')
+            ->first();
+
+        $absenPulang = Absensi::where('user_id', $user->id)
+            ->whereDate('tanggal_waktu', now()->toDateString())
+            ->where('tipe_absen', 'pulang')
+            ->first();
+
+        // ✅ Validasi awal
+        $request->validate([
+            'tipe_absen' => 'required|in:masuk,pulang',
+            'foto' => 'required',
+            'lokasi' => 'required|string|max:255',
+            'jam_kerja_id' => $request->tipe_absen === 'masuk' ? 'required|exists:jam_kerjas,id' : 'nullable',
+        ]);
+
+        // ✅ Jika sudah absen masuk dan pulang — blok total
+        if ($absenMasuk && $absenPulang) {
+            return back()->with('error', 'Anda sudah menyelesaikan absensi hari ini.');
+        }
+
+        // ✅ Blokir absen masuk kedua kali
+        if ($request->tipe_absen === 'masuk' && $absenMasuk) {
+            return back()->with('error', 'Anda sudah melakukan absensi masuk hari ini.');
+        }
+
+        // ✅ Blokir absen pulang tanpa absen masuk
+        if ($request->tipe_absen === 'pulang' && !$absenMasuk) {
+            return back()->with('error', 'Anda belum melakukan absensi masuk.');
+        }
+
+        // ✅ Blokir absen pulang kedua kali
+        if ($request->tipe_absen === 'pulang' && $absenPulang) {
+            return back()->with('error', 'Anda sudah melakukan absensi pulang hari ini.');
+        }
+
+        // ✅ Tentukan shift
+        $jamKerjaId = $request->tipe_absen === 'pulang'
+            ? $absenMasuk->jam_kerja_id
+            : $request->jam_kerja_id;
 
         // 🔹 Simpan foto dari base64
         $imageData = $request->foto;
@@ -46,11 +98,11 @@ class AbsensiController extends Controller
             Storage::disk('public')->put('absensi/' . $fileName, base64_decode($image));
         }
 
-        // 🔹 Simpan ke tabel absensis
+        // 🔹 Simpan ke tabel
         Absensi::create([
             'user_id' => $user->id,
-            'jam_kerja_id' => $jamKerja->id,
-            'tanggal_waktu' => now(), // otomatis waktu saat absen
+            'jam_kerja_id' => $jamKerjaId,
+            'tanggal_waktu' => now(),
             'tipe_absen' => $request->tipe_absen,
             'foto' => 'absensi/' . $fileName,
             'lokasi' => $request->lokasi,
@@ -59,6 +111,7 @@ class AbsensiController extends Controller
         return redirect()->back()->with('success', 'Absensi berhasil disimpan!');
     }
 
+
     public function riwayat(Request $request)
     {
         $user = Auth::user();
@@ -66,43 +119,51 @@ class AbsensiController extends Controller
             return redirect()->back()->with('error', 'Anda belum login.');
         }
 
-        // ✅ Ambil parameter filter dari request, default bulan dan tahun sekarang
+        // Filter bulan, tahun, status, urutan
         $bulan = $request->input('bulan', date('n'));
         $tahun = $request->input('tahun', date('Y'));
         $status = $request->input('status', '');
         $sort = $request->input('sort', 'desc');
 
-        // ✅ Query dasar absensi
+        // Ambil data absensi user
         $query = Absensi::where('user_id', $user->id)
             ->whereMonth('tanggal_waktu', $bulan)
             ->whereYear('tanggal_waktu', $tahun)
             ->with('jamKerja')
             ->orderBy('tanggal_waktu', $sort);
 
-        // Ambil semua data dulu
         $data = $query->get();
+
+        // Tentukan keterangan dinamis (Hadir / Terlambat / Tidak Hadir)
         foreach ($data as $item) {
             if ($item->tipe_absen === 'masuk' && $item->jamKerja) {
-                $jamMasukNormal = Carbon::parse($item->jamKerja->jam_masuk);
-                $jamAbsen = Carbon::parse($item->tanggal_waktu);
+                $jamMasukNormalStr  = $item->jamKerja->jam_masuk ?? '08:00:00';
+                $jamKeluarNormalStr = $item->jamKerja->jam_keluar ?? '16:00:00';
 
-                if ($jamAbsen->gt($jamMasukNormal)) {
-                    $item->keterangan_dinamis = 'Hadir (Terlambat)';
+                $tanggalHariIni = \Carbon\Carbon::parse($item->tanggal_waktu)->format('Y-m-d');
+
+                $jamMasukNormal  = \Carbon\Carbon::parse("$tanggalHariIni $jamMasukNormalStr");
+                $jamKeluarNormal = \Carbon\Carbon::parse("$tanggalHariIni $jamKeluarNormalStr");
+                $jamAbsen        = \Carbon\Carbon::parse($item->tanggal_waktu);
+
+                if ($jamAbsen->lt($jamMasukNormal)) {
+                    $item->keterangan_dinamis = 'Hadir'; // datang sebelum jam masuk
+                } elseif ($jamAbsen->between($jamMasukNormal, $jamKeluarNormal)) {
+                    $item->keterangan_dinamis = 'Hadir (Terlambat)'; // datang setelah jam masuk tapi masih dalam shift
                 } else {
-                    $item->keterangan_dinamis = 'Hadir';
+                    $item->keterangan_dinamis = 'Tidak Hadir'; // datang malam atau lewat jam kerja
                 }
             } else {
                 $item->keterangan_dinamis = '-';
             }
         }
 
-
-        // ✅ Group berdasarkan tanggal (tanpa jam)
+        // Group berdasarkan tanggal
         $grouped = $data->groupBy(function ($item) {
             return \Carbon\Carbon::parse($item->tanggal_waktu)->format('Y-m-d');
         });
 
-        // ✅ Filter berdasarkan status (hadir / belum_pulang / tidak_hadir)
+        // Filter status (opsional)
         if ($status) {
             $grouped = $grouped->filter(function ($records) use ($status) {
                 $masuk = $records->firstWhere('tipe_absen', 'masuk');
@@ -117,9 +178,9 @@ class AbsensiController extends Controller
             });
         }
 
-        // ✅ Pagination manual untuk Collection
+        // Pagination manual
         $perPage = 10;
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
         $items = $grouped->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
         $absensis = new \Illuminate\Pagination\LengthAwarePaginator(
@@ -135,6 +196,7 @@ class AbsensiController extends Controller
 
         return view('absensi.riwayat', compact('absensis', 'user'));
     }
+
 
 
     public function export(Request $request)
@@ -259,23 +321,61 @@ class AbsensiController extends Controller
     public function data(Request $request)
     {
         $user = Auth::user();
-        if (!$user) {
-            return redirect()->back()->with('error', 'Anda belum login.');
-        }
-        $query = Absensi::with('user', 'jamKerja');
 
-        // Filter berdasarkan tanggal jika ada
+        // Ambil semua data absensi beserta relasi user & jam kerja
+        $query = Absensi::with(['user', 'jamKerja'])
+            ->orderBy('tanggal_waktu', 'desc');
+
+        // Filter tanggal jika diisi
         if ($request->filled('tanggal')) {
             $query->whereDate('tanggal_waktu', $request->tanggal);
         }
 
-        // Filter berdasarkan user jika ada (misal untuk atasan atau HR melihat karyawan tertentu)
+        // Filter user jika diisi
         if ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
         }
 
-        $absensis = $query->orderBy('tanggal_waktu', 'desc')->paginate(10);
+        // Ambil semua data
+        $dataAbsensi = $query->get();
 
+        // Grouping per user + tanggal
+        $absensis = $dataAbsensi->groupBy(function ($item) {
+            return $item->user_id . '_' . \Carbon\Carbon::parse($item->tanggal_waktu)->format('Y-m-d');
+        });
+
+        // Hitung status otomatis seperti riwayat
+        foreach ($absensis as $key => $records) {
+            $masuk = $records->firstWhere('tipe_absen', 'masuk');
+            $pulang = $records->firstWhere('tipe_absen', 'pulang');
+            $first = $records->first();
+
+            $status = 'Tidak Hadir';
+
+            if ($masuk && $masuk->jamKerja) {
+                $jamMasukNormalStr  = $masuk->jamKerja->jam_masuk ?? '08:00:00';
+                $jamKeluarNormalStr = $masuk->jamKerja->jam_keluar ?? '16:00:00';
+
+                $tanggalHariIni = \Carbon\Carbon::parse($masuk->tanggal_waktu)->format('Y-m-d');
+
+                $jamMasukNormal  = \Carbon\Carbon::parse("$tanggalHariIni $jamMasukNormalStr");
+                $jamKeluarNormal = \Carbon\Carbon::parse("$tanggalHariIni $jamKeluarNormalStr");
+                $jamAbsen        = \Carbon\Carbon::parse($masuk->tanggal_waktu);
+
+                if ($jamAbsen->lt($jamMasukNormal)) {
+                    $status = 'Hadir'; // datang sebelum jam masuk
+                } elseif ($jamAbsen->between($jamMasukNormal, $jamKeluarNormal)) {
+                    $status = 'Hadir (Terlambat)'; // datang setelah jam masuk tapi masih dalam shift
+                } else {
+                    $status = 'Tidak Hadir'; // datang malam, setelah shift selesai
+                }
+            } else {
+                $status = '-';
+            }
+
+
+            $records->status_hadir = $status;
+        }
 
 
         return view('absensi.data', compact('absensis', 'user'));
