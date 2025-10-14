@@ -50,9 +50,13 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Section</label>
-                            <input type="text" name="section" class="form-control" value="{{ old('section') }}"
-                                placeholder="Masukkan section">
+                            <label class="form-label fw-semibold">Departemen</label>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <input type="text" name="nama_karyawan" class="form-control"
+                                        value="{{ old('nama_karyawan', Auth::user()->departement ?? '') }}" readonly>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -92,17 +96,7 @@
                         </div>
                     </div>
 
-                    <!-- Row 4: Departemen (Dropdown/Select) -->
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Departemen</label>
-                        <div class="row g-2">
-                            <div class="col-md-6">
-                                <input type="text" name="nama_karyawan" class="form-control"
-                                    value="{{ old('nama_karyawan', Auth::user()->departement ?? '') }}" readonly>
-                            </div>
-                        </div>
-                    </div>
-
+                    
                     <!-- Row 5: Nama Karyawan & Nama Atasan -->
                     <div class="row mb-3">
                         <div class="col-md-6">

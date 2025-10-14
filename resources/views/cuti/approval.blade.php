@@ -18,8 +18,10 @@
                         <label class="form-label fw-semibold">Status Cuti</label>
                         <select name="status" class="form-select">
                             <option value="">Semua Status</option>
-                            <option value="menunggu" {{ request('status') == 'menunggu' ? 'selected' : '' }}>Menunggu</option>
-                            <option value="disetujui" {{ request('status') == 'disetujui' ? 'selected' : '' }}>Disetujui</option>
+                            <option value="menunggu" {{ request('status') == 'menunggu' ? 'selected' : '' }}>Menunggu
+                            </option>
+                            <option value="disetujui" {{ request('status') == 'disetujui' ? 'selected' : '' }}>Disetujui
+                            </option>
                             <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
                         </select>
                     </div>
@@ -29,17 +31,23 @@
                         <label class="form-label fw-semibold">Bulan</label>
                         <select name="bulan" class="form-select">
                             <option value="1" {{ request('bulan', date('n')) == 1 ? 'selected' : '' }}>Januari</option>
-                            <option value="2" {{ request('bulan', date('n')) == 2 ? 'selected' : '' }}>Februari</option>
+                            <option value="2" {{ request('bulan', date('n')) == 2 ? 'selected' : '' }}>Februari
+                            </option>
                             <option value="3" {{ request('bulan', date('n')) == 3 ? 'selected' : '' }}>Maret</option>
                             <option value="4" {{ request('bulan', date('n')) == 4 ? 'selected' : '' }}>April</option>
                             <option value="5" {{ request('bulan', date('n')) == 5 ? 'selected' : '' }}>Mei</option>
                             <option value="6" {{ request('bulan', date('n')) == 6 ? 'selected' : '' }}>Juni</option>
                             <option value="7" {{ request('bulan', date('n')) == 7 ? 'selected' : '' }}>Juli</option>
-                            <option value="8" {{ request('bulan', date('n')) == 8 ? 'selected' : '' }}>Agustus</option>
-                            <option value="9" {{ request('bulan', date('n')) == 9 ? 'selected' : '' }}>September</option>
-                            <option value="10" {{ request('bulan', date('n')) == 10 ? 'selected' : '' }}>Oktober</option>
-                            <option value="11" {{ request('bulan', date('n')) == 11 ? 'selected' : '' }}>November</option>
-                            <option value="12" {{ request('bulan', date('n')) == 12 ? 'selected' : '' }}>Desember</option>
+                            <option value="8" {{ request('bulan', date('n')) == 8 ? 'selected' : '' }}>Agustus
+                            </option>
+                            <option value="9" {{ request('bulan', date('n')) == 9 ? 'selected' : '' }}>September
+                            </option>
+                            <option value="10" {{ request('bulan', date('n')) == 10 ? 'selected' : '' }}>Oktober
+                            </option>
+                            <option value="11" {{ request('bulan', date('n')) == 11 ? 'selected' : '' }}>November
+                            </option>
+                            <option value="12" {{ request('bulan', date('n')) == 12 ? 'selected' : '' }}>Desember
+                            </option>
                         </select>
                     </div>
 
@@ -48,7 +56,8 @@
                         <label class="form-label fw-semibold">Tahun</label>
                         <select name="tahun" class="form-select">
                             @for ($i = 2020; $i <= 2030; $i++)
-                                <option value="{{ $i }}" {{ request('tahun', date('Y')) == $i ? 'selected' : '' }}>
+                                <option value="{{ $i }}"
+                                    {{ request('tahun', date('Y')) == $i ? 'selected' : '' }}>
                                     {{ $i }}
                                 </option>
                             @endfor
@@ -94,7 +103,7 @@
                                     <td>{{ $cuti->user->badge_number ?? '-' }}</td>
                                     <td>{{ $cuti->user->departement ?? '-' }}</td>
                                     <td>{{ $cuti->user->name }}</td>
-                                    <td>{{ $cuti->nama_atasan }}</td>
+                                    <td>{{ $cuti->approver?->name }}</td>
                                     <td>{{ $cuti->jenis_cuti }}</td>
                                     <td>{{ \Carbon\Carbon::parse($cuti->tgl_pengajuan)->format('d M Y') }}</td>
                                     <td>{{ \Carbon\Carbon::parse($cuti->tgl_mulai)->format('d M Y') }}</td>
@@ -111,31 +120,23 @@
                                     </td>
                                     <td>
                                         @if ($cuti->status_pengajuan == 'menunggu')
-                                            <button class="btn btn-sm btn-info text-white me-1" 
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#detailModal" 
-                                                    data-cuti='@json($cuti)'>
+                                            <button class="btn btn-sm btn-info text-white me-1" data-bs-toggle="modal"
+                                                data-bs-target="#detailModal" data-cuti='@json($cuti)'>
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                            <button class="btn btn-sm btn-success me-1" 
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#approveModal" 
-                                                    data-id="{{ $cuti->id }}"
-                                                    data-nama="{{ $cuti->user->name }}">
+                                            <button class="btn btn-sm btn-success me-1" data-bs-toggle="modal"
+                                                data-bs-target="#approveModal" data-id="{{ $cuti->id }}"
+                                                data-nama="{{ $cuti->user->name }}">
                                                 <i class="fas fa-check"></i>
                                             </button>
-                                            <button class="btn btn-sm btn-danger" 
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#rejectModal" 
-                                                    data-id="{{ $cuti->id }}"
-                                                    data-nama="{{ $cuti->user->name }}">
+                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                                data-bs-target="#rejectModal" data-id="{{ $cuti->id }}"
+                                                data-nama="{{ $cuti->user->name }}">
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         @else
-                                            <button class="btn btn-sm btn-secondary" 
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#detailModal" 
-                                                    data-cuti='@json($cuti)'>
+                                            <button class="btn btn-sm btn-secondary" data-bs-toggle="modal"
+                                                data-bs-target="#detailModal" data-cuti='@json($cuti)'>
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                         @endif
@@ -165,7 +166,8 @@
             <div class="modal-content">
                 <div class="modal-header bg-info text-white">
                     <h5 class="modal-title">Detail Pengajuan Cuti</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row mb-3">
@@ -173,7 +175,7 @@
                             <p class="mb-2"><strong>No ID:</strong> <span id="d_badge"></span></p>
                             <p class="mb-2"><strong>Nama Karyawan:</strong> <span id="d_nama"></span></p>
                             <p class="mb-2"><strong>Departemen:</strong> <span id="d_dept"></span></p>
-                            <p class="mb-2"><strong>Nama Atasan:</strong> <span id="d_atasan"></span></p>
+                            <p class="mb-2"><strong>Nama Atasan:</strong> <span id="detail-atasan"></span></p>
                         </div>
                         <div class="col-md-6">
                             <p class="mb-2"><strong>Jenis Cuti:</strong> <span id="d_jenis"></span></p>
@@ -189,11 +191,13 @@
                     </div>
                     <div class="mb-3">
                         <p class="mb-2"><strong>Status:</strong> <span id="d_status"></span></p>
-                        <p class="mb-2"><strong>Komentar Admin:</strong> <span id="d_komentar" class="text-muted"></span></p>
+                        <p class="mb-2"><strong>Komentar Admin:</strong> <span id="d_komentar"
+                                class="text-muted"></span></p>
                     </div>
                     <div class="mb-3">
                         <p class="mb-2"><strong>Tanda Tangan Karyawan:</strong></p>
-                        <img id="d_ttd" src="" alt="Tanda Tangan" class="img-thumbnail" style="max-width: 300px;">
+                        <img id="d_ttd" src="" alt="Tanda Tangan" class="img-thumbnail"
+                            style="max-width: 300px;">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -209,7 +213,8 @@
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title">Setujui Pengajuan Cuti</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <form id="approveForm" method="POST">
                     @csrf
@@ -217,7 +222,8 @@
                         <p>Apakah Anda yakin ingin menyetujui pengajuan cuti dari <strong id="approve_nama"></strong>?</p>
                         <div class="mb-3">
                             <label class="form-label">Komentar (Opsional)</label>
-                            <textarea name="komentar_admin" class="form-control" rows="3" placeholder="Tambahkan komentar jika diperlukan"></textarea>
+                            <textarea name="komentar_admin" class="form-control" rows="3"
+                                placeholder="Tambahkan komentar jika diperlukan"></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -237,7 +243,8 @@
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">Tolak Pengajuan Cuti</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <form id="rejectForm" method="POST">
                     @csrf
@@ -272,7 +279,7 @@
             document.getElementById('d_badge').textContent = cuti.user.badge_number || '-';
             document.getElementById('d_nama').textContent = cuti.user.name;
             document.getElementById('d_dept').textContent = cuti.user.departement || '-';
-            document.getElementById('d_atasan').textContent = cuti.nama_atasan;
+            document.getElementById('detail-atasan').textContent = cuti.approver?.name ?? '-';
             document.getElementById('d_jenis').textContent = cuti.jenis_cuti;
             document.getElementById('d_pengajuan').textContent = new Date(cuti.tgl_pengajuan).toLocaleDateString('id-ID');
             document.getElementById('d_mulai').textContent = new Date(cuti.tgl_mulai).toLocaleDateString('id-ID');

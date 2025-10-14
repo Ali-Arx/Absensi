@@ -26,5 +26,9 @@ class cuti extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approver_id');
+    }
 }
 

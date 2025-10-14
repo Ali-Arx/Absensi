@@ -25,15 +25,14 @@ class LemburController extends Controller
 
         if ($user->departement === 'Office') {
             // Ambil user dengan jabatan/role tertentu
-            $approvalUsers = User::whereIn('name', ['Direktur Utama', 'Atasan Produksi'])->get();
-        } elseif ($user->departement === 'Produksi') {
-            $approvalUsers = User::whereIn('name', ['Direktur Utama', 'Atasan Produksi'])->get();
-        } elseif ($user->departement === 'HRD') {
-            $approvalUsers = User::whereIn('name', ['Direktur Utama'])->get();
-        } elseif ($user->departement === 'Gudang') {
-            $approvalUsers = User::whereIn('name', ['Direktur Utama', 'Atasan Produksi'])->get();
+            $approvalUsers = User::whereIn('name', ['Yeni', 'Nadirman'])->get();
+        } elseif ($user->departement === 'Sales') {
+            $approvalUsers = User::whereIn('name', ['Nadirman', 'Defri'])->get();
+        } elseif ($user->departement === 'Prodcution') {
+            $approvalUsers = User::whereIn('name', ['Zainuddin', 'Darwin'])->get();
+        } elseif ($user->departement === 'Engineering') {
+            $approvalUsers = User::whereIn('name', ['Rafly', 'Defri'])->get();
         } else {
-
             $approvalUsers = 'Nama Atasan Tidak Tersedia';
         }
 
@@ -75,7 +74,7 @@ class LemburController extends Controller
 
 
         // Simpan paraf sebagai file gambar
-        $imageData = $request->input('paraf');
+        $imageData = $request->input('tanda_tangan');
         $imageName = 'paraf_' . time() . '.png';
 
         // Decode base64 dan simpan di storage/public/paraf/
@@ -110,7 +109,7 @@ class LemburController extends Controller
         $query = Lembur::query();
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('status', $request->status_pengajuan);
         }
 
         if ($request->filled('departemen')) {
@@ -129,7 +128,7 @@ class LemburController extends Controller
     {
         $user = Auth::user();
 
-        $status = $request->get('status', '');
+        $status_pengajuan = $request->get('status', '');
         $bulan = $request->get('bulan', date('n'));
         $tahun = $request->get('tahun', date('Y'));
 
@@ -139,8 +138,8 @@ class LemburController extends Controller
             ->where('approver_id', $user->id); // ✅ hanya tampilkan pengajuan untuk approver yang sedang login
 
         // Optional filter status
-        if ($status) {
-            $query->where('status_pengajuan', $status);
+        if ($status_pengajuan) {
+            $query->where('status_pengajuan', $status_pengajuan);
         }
 
         $lemburs = $query->paginate(10);
@@ -179,12 +178,46 @@ class LemburController extends Controller
     /**
      * Menampilkan riwayat lembur user login
      */
-    public function riwayat()
+    public function riwayat(Request $request)
     {
-        $lemburs = Lembur::where('user_id', Auth::id())
-            ->orderBy('tgl_pengajuan', 'desc')
-            ->get();
+        $user = Auth::user();
 
-        return view('lembur.riwayat', compact('lemburs'));
+        // Filter
+        $status = $request->get('status', '');
+        $bulan = $request->get('bulan', date('n'));
+        $tahun = $request->get('tahun', date('Y'));
+
+        $query = lembur::with('approver')
+            ->where('user_id', $user->id)
+            ->whereMonth('tgl_pengajuan', $bulan)
+            ->whereYear('tgl_pengajuan', $tahun);
+
+
+        if ($status) {
+            $query->where('status_pengajuan', $status);
+        }
+
+        $lemburs = $query->paginate(10);
+
+        return view('lembur.riwayat', compact('lemburs', 'user', 'bulan', 'tahun'));
     }
+
+    /**
+     * Menampilkan detail lembur
+     */
+     public function show($id)
+{
+    $lembur = Lembur::with(['user', 'approver'])->find($id);
+
+    if (!$lembur) {
+        return response()->json(['success' => false]);
+    }
+
+    return response()->json([
+        'success' => true,
+        'data' => $lembur
+    ]);
+}
+
+
 }

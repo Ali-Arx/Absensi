@@ -10,76 +10,81 @@
     <div class="card shadow mb-4 border-0">
         <div class="card-body">
             {{-- Filter & Search Section --}}
-<div class="card shadow mb-4">
-    <div class="card-body">
-        <form id="filterForm" action="{{ route('absensi.riwayat') }}" method="GET">
-            <div class="row align-items-end">
-                {{-- Bulan --}}
-                <div class="col-md-3">
-                    <label for="bulan">Bulan</label>
-                    <select class="form-control" id="bulan" name="bulan">
-                        @foreach (['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'] as $b)
-                            <option value="{{ $b }}" {{ request('bulan', date('F')) == $b ? 'selected' : '' }}>
-                                {{ $b }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <form id="filterForm" action="{{ route('absensi.riwayat') }}" method="GET">
+                        <div class="row align-items-end">
+                            {{-- Bulan --}}
+                            <div class="col-md-3">
+                                <label for="bulan">Bulan</label>
+                                <select class="form-control" id="bulan" name="bulan">
+                                    @foreach (['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $b)
+                                        <option value="{{ $b }}"
+                                            {{ request('bulan', date('F')) == $b ? 'selected' : '' }}>
+                                            {{ $b }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
 
-                {{-- Tahun --}}
-                <div class="col-md-2">
-                    <label for="tahun">Tahun</label>
-                    <input type="number" class="form-control" id="tahun" name="tahun"
-                        value="{{ request('tahun', date('Y')) }}" min="2020" max="2099">
-                </div>
+                            {{-- Tahun --}}
+                            <div class="col-md-2">
+                                <label for="tahun">Tahun</label>
+                                <input type="number" class="form-control" id="tahun" name="tahun"
+                                    value="{{ request('tahun', date('Y')) }}" min="2020" max="2099">
+                            </div>
 
-                {{-- Status --}}
-                <div class="col-md-3">
-                    <label for="status">Status</label>
-                    <select class="form-control" id="status" name="status">
-                        <option value="">Semua Status</option>
-                        <option value="hadir" {{ request('status') == 'hadir' ? 'selected' : '' }}>Hadir</option>
-                        <option value="terlambat" {{ request('status') == 'terlambat' ? 'selected' : '' }}>Terlambat</option>
-                        <option value="izin" {{ request('status') == 'izin' ? 'selected' : '' }}>Izin</option>
-                        <option value="sakit" {{ request('status') == 'sakit' ? 'selected' : '' }}>Sakit</option>
-                        <option value="alpha" {{ request('status') == 'alpha' ? 'selected' : '' }}>Alpha</option>
-                    </select>
-                </div>
+                            {{-- Status --}}
+                            <div class="col-md-3">
+                                <label for="status">Status</label>
+                                <select class="form-control" id="status" name="status">
+                                    <option value="">Semua Status</option>
+                                    <option value="hadir" {{ request('status') == 'hadir' ? 'selected' : '' }}>Hadir
+                                    </option>
+                                    <option value="terlambat" {{ request('status') == 'terlambat' ? 'selected' : '' }}>
+                                        Terlambat</option>
+                                    <option value="izin" {{ request('status') == 'izin' ? 'selected' : '' }}>Izin</option>
+                                    <option value="sakit" {{ request('status') == 'sakit' ? 'selected' : '' }}>Sakit
+                                    </option>
+                                    <option value="alpha" {{ request('status') == 'alpha' ? 'selected' : '' }}>Alpha
+                                    </option>
+                                </select>
+                            </div>
 
-                {{-- Search --}}
-                <div class="col-md-4">
-                    <label for="search">Pencarian</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="search" name="search"
-                            placeholder="Cari tanggal, waktu, atau keterangan..."
-                            value="{{ request('search') }}">
-                        <div class="input-group-append">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search"></i>
+                            {{-- Search --}}
+                            <div class="col-md-4">
+                                <label for="search">Pencarian</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="search" name="search"
+                                        placeholder="Cari tanggal, waktu, atau keterangan..."
+                                        value="{{ request('search') }}">
+                                    <div class="input-group-append">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Tombol Aksi --}}
+                        <div class="mt-3 d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-filter me-1"></i> Terapkan
+                            </button>
+
+                            <a href="{{ route('absensi.riwayat') }}" class="btn btn-secondary me-2">
+                                <i class="fas fa-sync-alt me-1"></i> Reset
+                            </a>
+
+                            <button type="button" class="btn btn-success" onclick="exportData()">
+                                <i class="fas fa-file-export me-1"></i> Export
                             </button>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
 
-            {{-- Tombol Aksi --}}
-            <div class="mt-3 d-flex justify-content-end">
-                <button type="submit" class="btn btn-primary me-2">
-                    <i class="fas fa-filter me-1"></i> Terapkan
-                </button>
-
-                <a href="{{ route('absensi.riwayat') }}" class="btn btn-secondary me-2">
-                    <i class="fas fa-sync-alt me-1"></i> Reset
-                </a>
-
-                <button type="button" class="btn btn-success" onclick="exportData()">
-                    <i class="fas fa-file-export me-1"></i> Export
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-            
 
             {{-- Table Section --}}
             <div class="table-responsive">
@@ -178,14 +183,24 @@
 
                                 {{-- Keterangan --}}
                                 <td>
-                                    @if ($masuk && $pulang)
-                                        <span class="badge bg-success">Hadir</span>
-                                    @elseif ($masuk && !$pulang)
-                                        <span class="badge bg-warning text-dark">Terlambat</span>
+                                    @if (isset($masuk))
+                                        @php
+                                            $jamMasukNormal = \Carbon\Carbon::parse(
+                                                $masuk->jamKerja->jam_masuk ?? '08:00:00',
+                                            );
+                                            $jamMasukNyata = \Carbon\Carbon::parse($masuk->tanggal_waktu);
+                                        @endphp
+
+                                        @if ($jamMasukNyata->gt($jamMasukNormal))
+                                            <span class="badge bg-warning text-dark">Hadir (Terlambat)</span>
+                                        @else
+                                            <span class="badge bg-success">Hadir</span>
+                                        @endif
                                     @else
                                         <span class="badge bg-danger">Tidak Hadir</span>
                                     @endif
                                 </td>
+
                             </tr>
                         @empty
                             <tr>

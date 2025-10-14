@@ -97,6 +97,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/lembur/{lembur}/approve', [LemburController::class, 'approve'])->name('lembur.approve');
     Route::post('/lembur/{lembur}/reject', [LemburController::class, 'reject'])->name('lembur.reject');
     Route::get('/lembur/riwayat', [LemburController::class, 'riwayat'])->name('lembur.riwayat');
+    Route::get('/lembur/detail/{id}', [LemburController::class, 'show'])->name('lembur.detail');
 });
 
 

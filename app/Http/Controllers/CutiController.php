@@ -22,15 +22,15 @@ class CutiController extends Controller
 
         if ($user->departement === 'Office') {
             // Ambil user dengan jabatan/role tertentu
-            $approvalUsers = User::whereIn('name', ['Direktur Utama', 'Atasan Produksi'])->get();
-        } elseif ($user->departement === 'Produksi') {
-            $approvalUsers = User::whereIn('name', ['Direktur Utama', 'Atasan Produksi'])->get();
-        } elseif ($user->departement === 'HRD') {
-            $approvalUsers = User::whereIn('name', ['Direktur Utama'])->get();
-        } elseif ($user->departement === 'Gudang') {
-            $approvalUsers = User::whereIn('name', ['Direktur Utama', 'Atasan Produksi'])->get();
+            $approvalUsers = User::whereIn('name', ['Yeni', 'Nadirman'])->get();
+        } elseif ($user->departement === 'Sales') {
+            $approvalUsers = User::whereIn('name', ['Nadirman', 'Defri'])->get();
+        } elseif ($user->departement === 'Prodcution') {
+            $approvalUsers = User::whereIn('name', ['Zainuddin', 'Darwin'])->get();
+        } elseif ($user->departement === 'Engineering') {
+            $approvalUsers = User::whereIn('name', ['Rafly', 'Defri'])->get();
         } else {
-         
+
             $approvalUsers = 'Nama Atasan Tidak Tersedia';
         }
 
@@ -54,7 +54,7 @@ class CutiController extends Controller
         $status = 'menunggu';
         $approverId = $request->approver_id;
 
-        
+
 
         // ✅ Simpan pengajuan cuti
         Cuti::create([
@@ -86,7 +86,7 @@ class CutiController extends Controller
         $bulan = $request->get('bulan', date('n'));
         $tahun = $request->get('tahun', date('Y'));
 
-        $query = Cuti::with('user')
+        $query = Cuti::with('user', 'approver')
             ->whereMonth('tgl_pengajuan', $bulan)
             ->whereYear('tgl_pengajuan', $tahun)
             ->where('approver_id', $user->id); // ✅ hanya tampilkan pengajuan untuk approver yang sedang login
@@ -151,9 +151,11 @@ class CutiController extends Controller
         $bulan = $request->get('bulan', date('n'));
         $tahun = $request->get('tahun', date('Y'));
 
-        $query = Cuti::where('user_id', $user->id)
+        $query = Cuti::with('approver')
+            ->where('user_id', $user->id)
             ->whereMonth('tgl_pengajuan', $bulan)
             ->whereYear('tgl_pengajuan', $tahun);
+
 
         if ($status) {
             $query->where('status_pengajuan', $status);
@@ -191,9 +193,9 @@ class CutiController extends Controller
 
     public function show($id)
     {
-        $cuti = Cuti::with('user')->findOrFail($id);
+        // Tambahkan relasi 'approver' agar bisa akses nama atasan
+        $cuti = Cuti::with(['user', 'approver'])->findOrFail($id);
 
-        // Kirim dalam format JSON untuk AJAX
         return response()->json($cuti);
     }
 }
