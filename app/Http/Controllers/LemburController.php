@@ -22,15 +22,27 @@ class LemburController extends Controller
         $user = Auth::user();
         $approvalUsers = collect(); // default kosong, tapi tetap collection
 
-        if ($user->departement === 'Office') {
-            $approvalUsers = User::whereIn('name', ['Yeni', 'Nadirman'])->get();
-        } elseif ($user->departement === 'Sales') {
-            $approvalUsers = User::whereIn('name', ['Nadirman', 'Defri'])->get();
-        } elseif ($user->departement === 'Production') { 
-            $approvalUsers = User::whereIn('name', ['Zainuddin', 'Darwin'])->get();
-        } elseif ($user->departement === 'Engineering') {
-            $approvalUsers = User::whereIn('name', ['Rafly', 'Defri'])->get();
+        if ($user->role === 'atasan') {
+
+            $approvalUsers = User::where('role', 'hr')->get();
+        } elseif ($user->role === 'karyawan') {
+            if ($user->departement === 'Office') {
+
+                $approvalUsers = User::whereIn('name', ['Yeni', 'Nadirman'])->get();
+            } elseif ($user->departement === 'Sales') {
+                $approvalUsers = User::whereIn('name', ['Nadirman', 'Defri'])->get();
+            } elseif ($user->departement === 'Production') {
+                $approvalUsers = User::whereIn('name', ['Zainuddin', 'Darwin'])->get();
+            } elseif ($user->departement === 'Engineering') {
+                $approvalUsers = User::whereIn('name', ['Rafly', 'Defri'])->get();
+            }
+        } elseif ($user->role === 'hr') {
+            $approvalUsers = User::where('role', 'direktur')->get();
         }
+
+        // Tambahan: Handle jika setelah semua logika, $approvalUsers masih kosong
+        if (empty($approvalUsers)) {
+            $approvalUsers = 'Nama Atasan Tidak Tersedia';
 
         return view('lembur.create', compact('jamKerjas', 'approvalUsers'));
     }
