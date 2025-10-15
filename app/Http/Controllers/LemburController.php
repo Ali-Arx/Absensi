@@ -19,25 +19,22 @@ class LemburController extends Controller
     {
         $jamKerjas = JamKerja::all(); // ambil daftar shift
 
-
         $user = Auth::user();
-        $approvalUsers = [];
+        $approvalUsers = collect(); // default kosong, tapi tetap collection
 
         if ($user->departement === 'Office') {
-            // Ambil user dengan jabatan/role tertentu
             $approvalUsers = User::whereIn('name', ['Yeni', 'Nadirman'])->get();
         } elseif ($user->departement === 'Sales') {
             $approvalUsers = User::whereIn('name', ['Nadirman', 'Defri'])->get();
-        } elseif ($user->departement === 'Prodcution') {
+        } elseif ($user->departement === 'Production') { 
             $approvalUsers = User::whereIn('name', ['Zainuddin', 'Darwin'])->get();
         } elseif ($user->departement === 'Engineering') {
             $approvalUsers = User::whereIn('name', ['Rafly', 'Defri'])->get();
-        } else {
-            $approvalUsers = 'Nama Atasan Tidak Tersedia';
         }
 
         return view('lembur.create', compact('jamKerjas', 'approvalUsers'));
     }
+
 
     /**
      * Menyimpan data lembur ke database
@@ -205,19 +202,17 @@ class LemburController extends Controller
     /**
      * Menampilkan detail lembur
      */
-     public function show($id)
-{
-    $lembur = Lembur::with(['user', 'approver'])->find($id);
+    public function show($id)
+    {
+        $lembur = Lembur::with(['user', 'approver'])->find($id);
 
-    if (!$lembur) {
-        return response()->json(['success' => false]);
+        if (!$lembur) {
+            return response()->json(['success' => false]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $lembur
+        ]);
     }
-
-    return response()->json([
-        'success' => true,
-        'data' => $lembur
-    ]);
-}
-
-
 }

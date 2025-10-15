@@ -81,7 +81,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/absensi/riwayat', [AbsensiController::class, 'riwayat'])->name('absensi.riwayat');
     Route::get('/absensi/riwayat/export', [AbsensiController::class, 'export'])->name('absensi.riwayat.export');
     Route::get('/absensi/data', [AbsensiController::class, 'data'])->name('absensi.data');
-    Route::get(uri: '/absensi/data/export', action: [AbsensiController::class, 'export'])->name(name: 'absensi.data.export');
+    Route::get(uri: '/absensi/data/export-all', action: [AbsensiController::class, 'exportAll'])->name(name: 'absensi.data.exportAll');
     Route::get(uri: '/absensi/data/import', action: [AbsensiController::class, 'import'])->name(name: 'absensi.data.import');
 
     // Profil

@@ -82,7 +82,7 @@
                             </form>
 
                             {{-- Export --}}
-                            <a href="{{ route('absensi.data.export') }}" class="btn btn-info">
+                            <a href="{{ route('absensi.data.exportAll') }}" class="btn btn-info">
                                 <i class="fas fa-file-export me-1"></i> Export
                             </a>
                         </div>
@@ -100,6 +100,7 @@
                             <th>Badge</th>
                             <th>Tanggal</th>
                             <th>Waktu In | Out</th>
+                            <th>Total Jam</th>
                             <th>Kode Verifikasi</th>
                             <th>Lokasi</th>
                             <th>Status</th>
@@ -127,19 +128,26 @@
                                         {{ $pulang ? date('H:i', strtotime($pulang->tanggal_waktu)) : '-' }}
                                     </div>
                                 </td>
+                                <td>
+                                    @if ($masuk && $pulang)
+                                        {{ gmdate('H:i:s', strtotime($pulang->tanggal_waktu) - strtotime($masuk->tanggal_waktu)) }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
 
                                 {{-- Kolom Kode Verifikasi --}}
                                 <td>
                                     <div class="d-flex flex-column align-items-center gap-1">
-                                        @if ($masuk?->kode_verifikasi)
-                                            <img src="{{ asset('storage/' . $masuk->kode_verifikasi) }}" width="40"
+                                        @if ($masuk?->foto)
+                                            <img src="{{ asset('storage/' . $masuk->foto) }}" width="40"
                                                 height="40" class="rounded shadow-sm">
                                         @endif
-                                        @if ($pulang?->kode_verifikasi)
-                                            <img src="{{ asset('storage/' . $pulang->kode_verifikasi) }}" width="40"
+                                        @if ($pulang?->foto)
+                                            <img src="{{ asset('storage/' . $pulang->foto) }}" width="40"
                                                 height="40" class="rounded shadow-sm">
                                         @endif
-                                        @if (!$masuk?->kode_verifikasi && !$pulang?->kode_verifikasi)
+                                        @if (!$masuk?->foto && !$pulang?->foto)
                                             <span class="text-muted">-</span>
                                         @endif
                                     </div>
@@ -197,4 +205,25 @@
 
         </div>
     </div>
+    @push('scripts')
+<script>
+     // Export Data Function
+            function exportData() {
+                const bulan = document.querySelector('[name="bulan"]').value;
+                const tahun = document.querySelector('[name="tahun"]').value;
+                const status = document.querySelector('[name="status"]').value;
+
+                let exportUrl = "{{ route('absensi.data.exportAll') }}?bulan=" + bulan + "&tahun=" + tahun;
+
+                if (status) {
+                    exportUrl += "&status=" + status;
+                }
+
+                console.log("Export URL:", exportUrl); // untuk debug
+                window.location.href = exportUrl;
+            }
+
+</script>
+        
+    @endpush
 @endsection
