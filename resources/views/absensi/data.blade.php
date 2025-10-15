@@ -131,15 +131,15 @@
                                 {{-- Kolom Kode Verifikasi --}}
                                 <td>
                                     <div class="d-flex flex-column align-items-center gap-1">
-                                        @if ($masuk?->kode_verifikasi)
-                                            <img src="{{ asset('storage/' . $masuk->kode_verifikasi) }}" width="40"
+                                        @if ($masuk?->foto)
+                                            <img src="{{ asset('storage/' . $masuk->foto) }}" width="40"
                                                 height="40" class="rounded shadow-sm">
                                         @endif
-                                        @if ($pulang?->kode_verifikasi)
-                                            <img src="{{ asset('storage/' . $pulang->kode_verifikasi) }}" width="40"
+                                        @if ($pulang?->foto)
+                                            <img src="{{ asset('storage/' . $pulang->foto) }}" width="40"
                                                 height="40" class="rounded shadow-sm">
                                         @endif
-                                        @if (!$masuk?->kode_verifikasi && !$pulang?->kode_verifikasi)
+                                        @if (!$masuk?->foto && !$pulang?->foto)
                                             <span class="text-muted">-</span>
                                         @endif
                                     </div>
