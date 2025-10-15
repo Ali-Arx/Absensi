@@ -82,7 +82,7 @@
                             </form>
 
                             {{-- Export --}}
-                            <a href="{{ route('absensi.data.export') }}" class="btn btn-info">
+                            <a href="{{ route('absensi.data.exportAll') }}" class="btn btn-info">
                                 <i class="fas fa-file-export me-1"></i> Export
                             </a>
                         </div>
@@ -100,6 +100,7 @@
                             <th>Badge</th>
                             <th>Tanggal</th>
                             <th>Waktu In | Out</th>
+                            <th>Total Jam</th>
                             <th>Kode Verifikasi</th>
                             <th>Lokasi</th>
                             <th>Status</th>
@@ -126,6 +127,13 @@
                                         |
                                         {{ $pulang ? date('H:i', strtotime($pulang->tanggal_waktu)) : '-' }}
                                     </div>
+                                </td>
+                                <td>
+                                    @if ($masuk && $pulang)
+                                        {{ gmdate('H:i:s', strtotime($pulang->tanggal_waktu) - strtotime($masuk->tanggal_waktu)) }}
+                                    @else
+                                        -
+                                    @endif
                                 </td>
 
                                 {{-- Kolom Kode Verifikasi --}}
@@ -197,4 +205,25 @@
 
         </div>
     </div>
+    @push('scripts')
+<script>
+     // Export Data Function
+            function exportData() {
+                const bulan = document.querySelector('[name="bulan"]').value;
+                const tahun = document.querySelector('[name="tahun"]').value;
+                const status = document.querySelector('[name="status"]').value;
+
+                let exportUrl = "{{ route('absensi.data.exportAll') }}?bulan=" + bulan + "&tahun=" + tahun;
+
+                if (status) {
+                    exportUrl += "&status=" + status;
+                }
+
+                console.log("Export URL:", exportUrl); // untuk debug
+                window.location.href = exportUrl;
+            }
+
+</script>
+        
+    @endpush
 @endsection

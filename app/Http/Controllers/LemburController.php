@@ -19,10 +19,8 @@ class LemburController extends Controller
     {
         $jamKerjas = JamKerja::all(); // ambil daftar shift
 
-
         $user = Auth::user();
-        $approvalUsers = [];
-
+        $approvalUsers = collect(); // default kosong, tapi tetap collection
 
         if ($user->role === 'atasan') {
 
@@ -45,10 +43,10 @@ class LemburController extends Controller
         // Tambahan: Handle jika setelah semua logika, $approvalUsers masih kosong
         if (empty($approvalUsers)) {
             $approvalUsers = 'Nama Atasan Tidak Tersedia';
-        }
 
         return view('lembur.create', compact('jamKerjas', 'approvalUsers'));
     }
+
 
     /**
      * Menyimpan data lembur ke database

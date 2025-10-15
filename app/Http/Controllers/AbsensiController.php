@@ -146,17 +146,32 @@ class AbsensiController extends Controller
                 $jamKeluarNormal = \Carbon\Carbon::parse("$tanggalHariIni $jamKeluarNormalStr");
                 $jamAbsen        = \Carbon\Carbon::parse($item->tanggal_waktu);
 
+                // Tambahkan toleransi 10 menit
+                $jamMasukToleransi = $jamMasukNormal->copy()->addMinutes(10);
+
+                // Hitung selisih menit antara jam absen dan jam masuk normal
+                $selisihMenit = $jamMasukNormal->diffInMinutes($jamAbsen, false);
+
+                // Tentukan status berdasarkan waktu absen
                 if ($jamAbsen->lt($jamMasukNormal)) {
-                    $item->keterangan_dinamis = 'Hadir'; // datang sebelum jam masuk
-                } elseif ($jamAbsen->between($jamMasukNormal, $jamKeluarNormal)) {
-                    $item->keterangan_dinamis = 'Hadir (Terlambat)'; // datang setelah jam masuk tapi masih dalam shift
+                    // Datang sebelum jam masuk
+                    $item->keterangan_dinamis = 'Hadir';
+                } elseif ($jamAbsen->between($jamMasukNormal, $jamMasukToleransi)) {
+                    // Datang dalam toleransi 10 menit
+                    $item->keterangan_dinamis = 'Hadir';
+                } elseif ($jamAbsen->between($jamMasukToleransi, $jamKeluarNormal)) {
+                    // Datang lewat dari 10 menit setelah jam masuk tapi masih dalam jam kerja
+                    $item->keterangan_dinamis = 'Terlambat';
                 } else {
-                    $item->keterangan_dinamis = 'Tidak Hadir'; // datang malam atau lewat jam kerja
+                    // Datang setelah jam kerja berakhir
+                    $item->keterangan_dinamis = 'Tidak Hadir';
                 }
             } else {
-                $item->keterangan_dinamis = '-';
+                // Jika tidak ada data absen masuk
+                $item->keterangan_dinamis = 'Tidak Hadir';
             }
         }
+
 
         // Group berdasarkan tanggal
         $grouped = $data->groupBy(function ($item) {
@@ -316,6 +331,102 @@ class AbsensiController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
+    public function exportAll()
+    {
+        // Ambil semua data absensi dari tabel
+        $absensis = Absensi::with(['user', 'jamKerja'])
+            ->orderBy('tanggal_waktu', 'asc')
+            ->get();
+
+        $fileName = 'Data_Absensi_Semua_Karyawan_' . date('d-m-Y_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+        ];
+
+        $callback = function () use ($absensis) {
+            $file = fopen('php://output', 'w');
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM
+            $delimiter = ';'; // biar Excel Indonesia kebaca
+
+            // Header kolom
+            fputcsv($file, [
+                'No',
+                'Departemen',
+                'Nama',
+                'No ID',
+                'Tanggal',
+                'Waktu',
+                'Tipe Absen',
+                'Shift',
+                'Keterangan'
+            ], $delimiter);
+
+            $no = 1;
+            foreach ($absensis as $absen) {
+                fputcsv($file, [
+                    $no++,
+                    $absen->user->departement ?? '-',
+                    $absen->user->name ?? '-',
+                    $absen->user->badge_number ?? '-',
+                    Carbon::parse($absen->tanggal_waktu)->format('d/m/Y'),
+                    Carbon::parse($absen->tanggal_waktu)->format('H:i:s'),
+                    ucfirst($absen->tipe_absen),
+                    $absen->jamKerja->nama_shift ?? '-',
+                    $absen->keterangan_dinamis ?? '-'
+                ], $delimiter);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function import(Request $request)
+{
+    $request->validate([
+        'file' => 'required|file|mimes:csv,txt|max:2048',
+    ]);
+
+    $file = $request->file('file');
+    $handle = fopen($file->getRealPath(), 'r');
+    $delimiter = ';';
+
+    // Lewati baris pertama (header)
+    fgetcsv($handle, 1000, $delimiter);
+
+    $count = 0;
+
+    while (($data = fgetcsv($handle, 1000, $delimiter)) !== false) {
+        // Pastikan urutan kolom sama seperti di exportAll()
+        [$no, $departemen, $nama, $no_id, $tanggal, $waktu, $tipe_absen, $shift, $keterangan] = $data;
+
+        $user = User::where('badge_number', $no_id)->first();
+        if ($user) {
+            $tanggalWaktu = Carbon::createFromFormat('d/m/Y H:i:s', "$tanggal $waktu");
+
+            Absensi::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'tanggal_waktu' => $tanggalWaktu,
+                    'tipe_absen' => strtolower($tipe_absen),
+                ],
+                [
+                    'jam_kerja_id' => optional(JamKerja::where('nama_shift', $shift)->first())->id,
+                    'keterangan_dinamis' => $keterangan,
+                ]
+            );
+
+            $count++;
+        }
+    }
+
+    fclose($handle);
+
+    return redirect()->back()->with('success', "Import berhasil! $count data absensi telah ditambahkan/diupdate.");
+}
 
 
     public function data(Request $request)
