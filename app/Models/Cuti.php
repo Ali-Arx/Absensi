@@ -19,7 +19,8 @@ class cuti extends Model
         'tanda_tangan',
         'status_pengajuan',
         'tgl_status',
-        'nama_atasan',
+        'komentar',
+        'tanda_tangan_approval'
     ];
 
     public function user()

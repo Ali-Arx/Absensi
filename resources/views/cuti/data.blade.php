@@ -92,8 +92,8 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @php $no = 0; @endphp
                             @forelse ($cutis as $cuti)
-                                @php $no=0; @endphp
                                 <tr>
                                     <td>{{ ++$no }}</td>
                                     <td>{{ $cuti->user->badge_number }}</td>
@@ -101,9 +101,9 @@
                                     <td>{{ $cuti->user->name }}</td>
                                     <td>{{ $cuti->approver->name ?? '-' }}</td>
                                     <td>{{ $cuti->jenis_cuti }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($cuti->tanggal_pengajuan)->format('d/m/Y') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($cuti->tanggal_mulai)->format('d/m/Y') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($cuti->tanggal_selesai)->format('d/m/Y') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($cuti->tgl_pengajuan)->format('d/m/Y') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($cuti->tgl_mulai)->format('d/m/Y') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($cuti->tgl_selesai)->format('d/m/Y') }}</td>
                                     <td>{{ $cuti->alasan }}</td>
                                     <td>
                                         @if ($cuti->status_pengajuan == 'disetujui')
@@ -133,6 +133,12 @@
                             @endforelse
                         </tbody>
                     </table>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        
+                        <div>
+                            {{ $cutis->appends(request()->query())->links() }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

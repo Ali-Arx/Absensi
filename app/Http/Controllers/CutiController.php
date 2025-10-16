@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Cuti;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class CutiController extends Controller
 {
@@ -117,6 +119,9 @@ class CutiController extends Controller
      */
     public function approve(Request $request, Cuti $cuti)
     {
+        
+
+
         if (Auth::id() != $cuti->approver_id) {
             abort(403, 'Anda tidak berhak approve.');
         }
@@ -124,7 +129,6 @@ class CutiController extends Controller
         $cuti->update([
             'status_pengajuan' => 'disetujui',
             'tgl_status' => now(),
-            'komentar_admin' => $request->komentar_admin ?? null,
         ]);
 
         return back()->with('success', 'Cuti berhasil disetujui.');
@@ -206,5 +210,43 @@ class CutiController extends Controller
         $cuti = Cuti::with(['user', 'approver'])->findOrFail($id);
 
         return response()->json($cuti);
+    }
+
+    public function processApproval(Request $request, Cuti $cuti)
+    {
+        // 1. Validasi Input dari Form
+        $validated = $request->validate([
+            'status_pengajuan' => ['required', Rule::in(['disetujui', 'ditolak'])],
+            'komentar' => 'nullable|string|max:255',
+            'ttd_atasan_base64' => 'required|string', // TTD wajib diisi
+        ]);
+
+        // 2. Proses dan Simpan Tanda Tangan (Base64) sebagai File Gambar
+        $imageData = $validated['ttd_atasan_base64'];
+
+        // Pisahkan header dari data base64
+        // contoh: "data:image/png;base64,iVBORw0KGgo..."
+        @list($type, $imageData) = explode(';', $imageData);
+        @list(, $imageData) = explode(',', $imageData);
+
+        $imageData = base64_decode($imageData);
+        
+        // Buat nama file yang unik
+        $imageName = 'ttd-atasan-' . $cuti->id . '-' . time() . '.png';
+        $path = 'public/tanda_tangan_atasan/' . $imageName;
+
+        // Simpan file ke storage
+        Storage::put($path, $imageData);
+
+        // 3. Update Data Cuti di Database
+        $cuti->update([
+            'status_pengajuan' => $validated['status_pengajuan'],
+            'komentar' => $validated['komentar'],
+            'tanda_tangan_approval' => Storage::url($path), // Simpan URL publik ke file
+            'tgl_disetujui' => now(), // Catat tanggal persetujuan
+        ]);
+
+        // 4. Kembalikan ke halaman sebelumnya dengan pesan sukses
+        return back()->with('success', 'Status pengajuan cuti telah berhasil diperbarui.');
     }
 }
