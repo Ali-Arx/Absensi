@@ -124,16 +124,6 @@
                                                 data-bs-target="#detailModal" data-cuti='@json($cuti)'>
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                            <button class="btn btn-sm btn-success me-1" data-bs-toggle="modal"
-                                                data-bs-target="#approveModal" data-id="{{ $cuti->id }}"
-                                                data-nama="{{ $cuti->user->name }}">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                                data-bs-target="#rejectModal" data-id="{{ $cuti->id }}"
-                                                data-nama="{{ $cuti->user->name }}">
-                                                <i class="fas fa-times"></i>
-                                            </button>
                                         @else
                                             <button class="btn btn-sm btn-secondary" data-bs-toggle="modal"
                                                 data-bs-target="#detailModal" data-cuti='@json($cuti)'>
@@ -161,169 +151,274 @@
     </div>
 
     <!-- Modal Detail -->
-    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title">Detail Pengajuan Cuti</h5>
+
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="detailModalLabel">Detail Pengajuan Cuti</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p class="mb-2"><strong>No ID:</strong> <span id="d_badge"></span></p>
-                            <p class="mb-2"><strong>Nama Karyawan:</strong> <span id="d_nama"></span></p>
-                            <p class="mb-2"><strong>Departemen:</strong> <span id="d_dept"></span></p>
-                            <p class="mb-2"><strong>Nama Atasan:</strong> <span id="detail-atasan"></span></p>
+
+                <form id="formApprovalCuti" action="" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" id="app_cuti_id" name="cuti_id">
+
+                    <div class="modal-body">
+                        <!-- Bagian Detail Pengajuan (Tidak Berubah) -->
+                        <h6 class="text-muted">Detail Pengajuan</h6>
+                        <hr>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">No ID</label>
+                                <input type="text" class="form-control" id="d_badge" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Departmen</label>
+                                <input type="text" class="form-control" id="d_dept" readonly>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <p class="mb-2"><strong>Jenis Cuti:</strong> <span id="d_jenis"></span></p>
-                            <p class="mb-2"><strong>Tanggal Pengajuan:</strong> <span id="d_pengajuan"></span></p>
-                            <p class="mb-2"><strong>Tanggal Mulai:</strong> <span id="d_mulai"></span></p>
-                            <p class="mb-2"><strong>Tanggal Selesai:</strong> <span id="d_selesai"></span></p>
+                        <!-- ... (baris nama, tanggal, alasan, dan ttd karyawan lainnya seperti sebelumnya) ... -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Nama Karyawan</label>
+                                <input type="text" class="form-control" id="d_nama" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Nama Atasan yang menerima laporan</label>
+                                <input type="text" class="form-control" id="detail-atasan" readonly>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Jenis Cuti</label>
+                                <input type="text" class="form-control" id="d_jenis" readonly>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Tanggal izin cuti</label>
+                                <input type="text" class="form-control" id="d_pengajuan" readonly>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Start</label>
+                                <input type="text" class="form-control" id="d_mulai" readonly>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">End</label>
+                                <input type="text" class="form-control" id="d_selesai" readonly>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Alasan Izin Cuti</label>
+                            <textarea class="form-control" id="d_alasan" rows="2" readonly></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tanda Tangan Karyawan</label>
+                            <div>
+                                <img id="d_ttd" src="" alt="TTD Karyawan" class="img-thumbnail bg-light"
+                                    style="width: 200px; height: 125px; object-fit: contain;">
+                            </div>
+                        </div>
+
+
+                        <h6 class="text-muted mt-4">Persetujuan Atasan</h6>
+                        <hr>
+
+                        <!-- ============================================= -->
+                        <!-- KONTENER UNTUK FORM EDITABLE                  -->
+                        <!-- ============================================= -->
+                        <div id="approval-form-container">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label d-block">Status</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="status_pengajuan"
+                                            id="status_disetujui" value="disetujui" required>
+                                        <label class="form-check-label" for="status_disetujui">Disetujui</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="status_pengajuan"
+                                            id="status_ditolak" value="ditolak" required>
+                                        <label class="form-check-label" for="status_ditolak">Ditolak</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="d_komentar" class="form-label">Komentar</label>
+                                <textarea class="form-control" id="d_komentar" name="komentar" rows="2" placeholder="Tulis komentar..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tanda Tangan Atasan</label>
+                                <div>
+                                    <canvas id="ttd_atasan_canvas" class="border bg-light" width="300"
+                                        height="150"></canvas>
+                                    <br>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary mt-1"
+                                        id="clear_ttd_atasan">Hapus TTD</button>
+                                    <input type="hidden" name="ttd_atasan_base64" id="ttd_atasan_base64">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ============================================= -->
+                        <!-- KONTENER UNTUK HASIL READ-ONLY                -->
+                        <!-- ============================================= -->
+                        <div id="approval-result-container" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <p class="mb-2"><strong>Status:</strong> <span id="res_status_badge"></span></p>
+                                    <p class="mb-2"><strong>Komentar Atasan:</strong></p>
+                                    <p id="res_komentar" class="text-muted fst-italic ps-3">Tidak ada komentar.</p>
+                                    <p class="mb-2"><strong>Tanda Tangan Atasan:</strong></p>
+                                    <img id="res_ttd_atasan" src="" alt="TTD Atasan"
+                                        class="img-thumbnail bg-light"
+                                        style="width: 200px; height: 125px; object-fit: contain;">
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <hr>
-                    <div class="mb-3">
-                        <p class="mb-2"><strong>Alasan Cuti:</strong></p>
-                        <p class="text-muted" id="d_alasan"></p>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                        <!-- Tombol Simpan ini akan kita kontrol -->
+                        <button type="submit" class="btn btn-primary" id="simpan-btn"
+                            form="formApprovalCuti">Simpan</button>
                     </div>
-                    <div class="mb-3">
-                        <p class="mb-2"><strong>Status:</strong> <span id="d_status"></span></p>
-                        <p class="mb-2"><strong>Komentar Admin:</strong> <span id="d_komentar"
-                                class="text-muted"></span></p>
-                    </div>
-                    <div class="mb-3">
-                        <p class="mb-2"><strong>Tanda Tangan Karyawan:</strong></p>
-                        <img id="d_ttd" src="" alt="Tanda Tangan" class="img-thumbnail"
-                            style="max-width: 300px;">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                </div>
+                </form>
+
             </div>
         </div>
     </div>
 
-    <!-- Modal Approve -->
-    <div class="modal fade" id="approveModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">Setujui Pengajuan Cuti</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <form id="approveForm" method="POST">
-                    @csrf
-                    <div class="modal-body">
-                        <p>Apakah Anda yakin ingin menyetujui pengajuan cuti dari <strong id="approve_nama"></strong>?</p>
-                        <div class="mb-3">
-                            <label class="form-label">Komentar (Opsional)</label>
-                            <textarea name="komentar_admin" class="form-control" rows="3"
-                                placeholder="Tambahkan komentar jika diperlukan"></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-check me-1"></i> Setujui
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
-    <!-- Modal Reject -->
-    <div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title">Tolak Pengajuan Cuti</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <form id="rejectForm" method="POST">
-                    @csrf
-                    <div class="modal-body">
-                        <p>Apakah Anda yakin ingin menolak pengajuan cuti dari <strong id="reject_nama"></strong>?</p>
-                        <div class="mb-3">
-                            <label class="form-label">Alasan Penolakan <span class="text-danger">*</span></label>
-                            <textarea name="komentar_admin" class="form-control" rows="3" placeholder="Berikan alasan penolakan" required></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-times me-1"></i> Tolak
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
 @endsection
 
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 @push('scripts')
+    <!-- PASTIKAN LIBRARY INI SUDAH ADA DI HALAMAN ANDA -->
+
     <script>
-        // Modal Detail
-        const detailModal = document.getElementById('detailModal');
-        detailModal.addEventListener('show.bs.modal', event => {
-            const button = event.relatedTarget;
-            const cuti = JSON.parse(button.getAttribute('data-cuti'));
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- SETUP ELEMENT-ELEMENT MODAL ---
+            const detailModal = document.getElementById('detailModal');
+            const canvas = document.getElementById('ttd_atasan_canvas');
+            const clearButton = document.getElementById('clear_ttd_atasan');
+            const hiddenInput = document.getElementById('ttd_atasan_base64');
 
-            document.getElementById('d_badge').textContent = cuti.user.badge_number || '-';
-            document.getElementById('d_nama').textContent = cuti.user.name;
-            document.getElementById('d_dept').textContent = cuti.user.departement || '-';
-            document.getElementById('detail-atasan').textContent = cuti.approver?.name ?? '-';
-            document.getElementById('d_jenis').textContent = cuti.jenis_cuti;
-            document.getElementById('d_pengajuan').textContent = new Date(cuti.tgl_pengajuan).toLocaleDateString('id-ID');
-            document.getElementById('d_mulai').textContent = new Date(cuti.tgl_mulai).toLocaleDateString('id-ID');
-            document.getElementById('d_selesai').textContent = new Date(cuti.tgl_selesai).toLocaleDateString('id-ID');
-            document.getElementById('d_alasan').textContent = cuti.alasan;
+            // Elemen-elemen untuk logika read-only
+            const approvalFormContainer = document.getElementById('approval-form-container');
+            const approvalResultContainer = document.getElementById('approval-result-container');
+            const saveButton = document.getElementById('simpan-btn');
+            let signaturePad;
 
-            // Status
-            let statusText = '-';
-            let statusClass = 'badge bg-secondary';
-            if (cuti.status_pengajuan === 'menunggu') {
-                statusText = 'Menunggu';
-                statusClass = 'badge bg-warning text-dark';
-            } else if (cuti.status_pengajuan === 'disetujui') {
-                statusText = 'Disetujui';
-                statusClass = 'badge bg-success';
-            } else if (cuti.status_pengajuan === 'ditolak') {
-                statusText = 'Ditolak';
-                statusClass = 'badge bg-danger';
+            function resizeCanvas() {
+                // Cek dulu apakah canvas terlihat, baru resize
+                if (!canvas.offsetParent) return;
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                canvas.width = canvas.offsetWidth * ratio;
+                canvas.height = canvas.offsetHeight * ratio;
+                canvas.getContext("2d").scale(ratio, ratio);
+                if (signaturePad) {
+                    signaturePad.clear();
+                }
             }
-            document.getElementById('d_status').innerHTML = `<span class="${statusClass}">${statusText}</span>`;
-            document.getElementById('d_komentar').textContent = cuti.komentar_admin || '-';
-            document.getElementById('d_ttd').src = cuti.tanda_tangan || '';
-        });
 
-        // Modal Approve
-        const approveModal = document.getElementById('approveModal');
-        approveModal.addEventListener('show.bs.modal', event => {
-            const button = event.relatedTarget;
-            const cutiId = button.getAttribute('data-id');
-            const nama = button.getAttribute('data-nama');
+            // --- EVENT LISTENER SAAT MODAL AKAN DITAMPILKAN ---
+            detailModal.addEventListener('show.bs.modal', event => {
+                const button = event.relatedTarget;
+                const cuti = JSON.parse(button.getAttribute('data-cuti'));
+                const form = document.getElementById('formApprovalCuti');
 
-            document.getElementById('approve_nama').textContent = nama;
-            document.getElementById('approveForm').action = `/cuti/${cutiId}/approve`;
-        });
+                // 1. Mengisi data detail pengajuan (selalu dilakukan)
+                // (Ini adalah kode dari skrip yang Anda kirim, sudah ada di sini)
+                document.getElementById('d_badge').value = cuti.user.badge_number || '-';
+                document.getElementById('d_nama').value = cuti.user.name;
+                document.getElementById('d_dept').value = cuti.user.departement || '-';
+                document.getElementById('detail-atasan').value = cuti.approver?.name ?? '-';
+                document.getElementById('d_jenis').value = cuti.jenis_cuti;
+                document.getElementById('d_pengajuan').value = new Date(cuti.tgl_pengajuan)
+                    .toLocaleDateString('id-ID');
+                document.getElementById('d_mulai').value = new Date(cuti.tgl_mulai).toLocaleDateString(
+                    'id-ID');
+                document.getElementById('d_selesai').value = new Date(cuti.tgl_selesai).toLocaleDateString(
+                    'id-ID');
+                document.getElementById('d_alasan').value = cuti.alasan;
+                document.getElementById('d_ttd').src = cuti.tanda_tangan ||
+                    'https://placehold.co/200x125?text=TTD+Tidak+Ada';
 
-        // Modal Reject
-        const rejectModal = document.getElementById('rejectModal');
-        rejectModal.addEventListener('show.bs.modal', event => {
-            const button = event.relatedTarget;
-            const cutiId = button.getAttribute('data-id');
-            const nama = button.getAttribute('data-nama');
+                // 2. LOGIKA UTAMA: Tentukan mode tampilan berdasarkan status
+                // (Ini adalah logika BARU untuk read-only)
+                if (cuti.status_pengajuan === 'menunggu') {
+                    // MODE APPROVAL (EDITABLE)
+                    approvalFormContainer.style.display = 'block';
+                    approvalResultContainer.style.display = 'none';
+                    saveButton.style.display = 'block';
 
-            document.getElementById('reject_nama').textContent = nama;
-            document.getElementById('rejectForm').action = `/cuti/${cutiId}/reject`;
+                    // Reset form approval
+                    form.action = `/cuti/${cuti.id}/process-approval`; // Ganti dengan URL route Anda
+                    document.getElementById('app_cuti_id').value = cuti.id;
+                    document.getElementById('d_komentar').value = '';
+                    document.querySelectorAll('input[name="status_pengajuan"]').forEach(radio => radio
+                        .checked = false);
+
+                } else {
+                    // MODE DETAIL (READ-ONLY)
+                    approvalFormContainer.style.display = 'none';
+                    approvalResultContainer.style.display = 'block';
+                    saveButton.style.display = 'none';
+
+                    // Tampilkan hasil approval
+                    let statusText = cuti.status_pengajuan.charAt(0).toUpperCase() + cuti.status_pengajuan
+                        .slice(1);
+                    let statusClass = 'badge bg-secondary';
+                    if (cuti.status_pengajuan === 'disetujui') statusClass = 'badge bg-success';
+                    if (cuti.status_pengajuan === 'ditolak') statusClass = 'badge bg-danger';
+                    document.getElementById('res_status_badge').innerHTML =
+                        `<span class="${statusClass}">${statusText}</span>`;
+
+                    document.getElementById('res_komentar').textContent = cuti.komentar ||
+                        'Tidak ada komentar.';
+                    document.getElementById('res_ttd_atasan').src = cuti.tanda_tangan_atasan ||
+                        'https://placehold.co/200x125?text=TTD+Tidak+Ada';
+                }
+            });
+
+            detailModal.addEventListener('shown.bs.modal', () => {
+                if (approvalFormContainer.style.display === 'block') {
+                    signaturePad = new SignaturePad(canvas, {
+                        backgroundColor: 'rgb(248, 249, 250)',
+                        penColor: 'rgb(0, 0, 0)'
+                    });
+                    resizeCanvas();
+
+                    signaturePad.addEventListener("endStroke", () => {
+                        if (!signaturePad.isEmpty()) {
+                            hiddenInput.value = signaturePad.toDataURL('image/png');
+                        }
+                    });
+                }
+            });
+
+            clearButton.addEventListener('click', () => {
+                if (signaturePad) {
+                    signaturePad.clear();
+                    hiddenInput.value = '';
+                }
+            });
+
+            detailModal.addEventListener('hidden.bs.modal', () => {
+                if (signaturePad) {
+                    signaturePad.clear();
+                    hiddenInput.value = '';
+                    // Hancurkan instance untuk mencegah memory leak
+                    signaturePad.off();
+                    signaturePad = null;
+                }
+            });
+
+            window.addEventListener("resize", resizeCanvas);
         });
     </script>
 @endpush

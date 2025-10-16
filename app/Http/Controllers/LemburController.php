@@ -36,13 +36,15 @@ class LemburController extends Controller
             } elseif ($user->departement === 'Engineering') {
                 $approvalUsers = User::whereIn('name', ['Rafly', 'Defri'])->get();
             }
+            
         } elseif ($user->role === 'hr') {
             $approvalUsers = User::where('role', 'direktur')->get();
         }
 
         // Tambahan: Handle jika setelah semua logika, $approvalUsers masih kosong
-        if (empty($approvalUsers)) {
-            $approvalUsers = 'Nama Atasan Tidak Tersedia';
+        if ($approvalUsers->isEmpty()) {
+            $approvalUsers = collect(['Nama Atasan Tidak Tersedia']);
+        }
 
         return view('lembur.create', compact('jamKerjas', 'approvalUsers'));
     }
@@ -162,9 +164,8 @@ class LemburController extends Controller
     public function approve(Request $request, Lembur $lembur)
     {
         $lembur->update([
-            'status' => 'Disetujui',
-            'disetujui_oleh' => Auth::user()->name,
-            'tanggal_disetujui' => now(),
+            'status_pengajuan' => 'disetujui',
+            'tgl_status' => now(),
         ]);
 
         return back()->with('success', 'Lembur telah disetujui.');
@@ -176,9 +177,8 @@ class LemburController extends Controller
     public function reject(Request $request, Lembur $lembur)
     {
         $lembur->update([
-            'status' => 'Ditolak',
-            'disetujui_oleh' => Auth::user()->name,
-            'tanggal_disetujui' => now(),
+            'status_pengajuan' => 'ditolak',
+            'tgl_status' => now(),
         ]);
 
         return back()->with('error', 'Lembur telah ditolak.');

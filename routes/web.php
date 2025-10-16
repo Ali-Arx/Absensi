@@ -86,7 +86,7 @@ Route::middleware('auth')->group(function () {
 
     // Profil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::put('/profile/password', action: [PasswordController::class,'update'])->name('profile.password');
 
@@ -96,8 +96,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/lembur/store', [LemburController::class, 'store'])->name('lembur.store');
     Route::get('/lembur/data', [LemburController::class, 'data'])->name('lembur.data');
     Route::get('/lembur/approval', [LemburController::class, 'approvalIndex'])->name('lembur.approval');
-    Route::post('/lembur/{lembur}/approve', [LemburController::class, 'approve'])->name('lembur.approve');
-    Route::post('/lembur/{lembur}/reject', [LemburController::class, 'reject'])->name('lembur.reject');
+    Route::put('/cuti/{cuti}/process-approval', [CutiController::class, 'processApproval'])->name('cuti.processApproval');
     Route::get('/lembur/riwayat', [LemburController::class, 'riwayat'])->name('lembur.riwayat');
     Route::get('/lembur/detail/{id}', [LemburController::class, 'show'])->name('lembur.detail');
 });
