@@ -122,6 +122,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/pengguna/{id}', [PenggunaController::class, 'update'] )->name('pengguna.update');
         Route::delete('/pengguna/{id}', [PenggunaController::class, 'delete'] )->name('pengguna.delete');
     });
+
 });
 
 // route default Laravel Breeze / Fortify
