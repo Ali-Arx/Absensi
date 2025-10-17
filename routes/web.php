@@ -68,8 +68,8 @@ Route::middleware('auth')->group(function () {
     
     // Route approval 
     Route::get('/cuti/approval', [CutiController::class, 'approvalIndex'])->name('cuti.approval');
-    Route::post('/cuti/{cuti}/approve', [CutiController::class, 'approve'])->name('cuti.approve');
-    Route::post('/cuti/{cuti}/reject', [CutiController::class, 'reject'])->name('cuti.reject');
+    Route::get('/cuti/{cuti}/approve', [CutiController::class, 'approve'])->name('cuti.approve');
+    Route::get('/cuti/{cuti}/reject', [CutiController::class, 'reject'])->name('cuti.reject');
     
     // Route dengan parameter {id} 
     Route::get('/cuti/{id}', [CutiController::class, 'show'])->name('cuti.show');
@@ -96,7 +96,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/lembur/store', [LemburController::class, 'store'])->name('lembur.store');
     Route::get('/lembur/data', [LemburController::class, 'data'])->name('lembur.data');
     Route::get('/lembur/approval', [LemburController::class, 'approvalIndex'])->name('lembur.approval');
-    Route::put('/cuti/{cuti}/process-approval', [CutiController::class, 'processApproval'])->name('cuti.processApproval');
+    Route::put('/lembur/{lembur}/process-approval', [CutiController::class, 'processApproval'])->name('lembur.processApproval');
+    Route::put(uri: '/lembur/reject', action: [LemburController::class, 'reject'])->name('lembur.reject');
     Route::get('/lembur/riwayat', [LemburController::class, 'riwayat'])->name('lembur.riwayat');
     Route::get('/lembur/detail/{id}', [LemburController::class, 'show'])->name('lembur.detail');
 });

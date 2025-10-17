@@ -137,40 +137,38 @@ class AbsensiController extends Controller
         // Tentukan keterangan dinamis (Hadir / Terlambat / Tidak Hadir)
         foreach ($data as $item) {
             if ($item->tipe_absen === 'masuk' && $item->jamKerja) {
+                // Ambil jam masuk & keluar shift dari tabel jam_kerjas
                 $jamMasukNormalStr  = $item->jamKerja->jam_masuk ?? '08:00:00';
-                $jamKeluarNormalStr = $item->jamKerja->jam_keluar ?? '16:00:00';
+                $jamKeluarNormalStr = $item->jamKerja->jam_keluar ?? '17:00:00';
 
-                $tanggalHariIni = \Carbon\Carbon::parse($item->tanggal_waktu)->format('Y-m-d');
+                // Tanggal absensi
+                $tanggalHariIni = Carbon::parse($item->tanggal_waktu)->format('Y-m-d');
 
-                $jamMasukNormal  = \Carbon\Carbon::parse("$tanggalHariIni $jamMasukNormalStr");
-                $jamKeluarNormal = \Carbon\Carbon::parse("$tanggalHariIni $jamKeluarNormalStr");
-                $jamAbsen        = \Carbon\Carbon::parse($item->tanggal_waktu);
+                // Gabungkan tanggal + jam kerja
+                $jamMasukNormal  = Carbon::parse("$tanggalHariIni $jamMasukNormalStr");
+                $jamKeluarNormal = Carbon::parse("$tanggalHariIni $jamKeluarNormalStr");
+                $jamAbsen        = Carbon::parse($item->tanggal_waktu);
 
-                // Tambahkan toleransi 10 menit
+                // ✅ Tambahkan toleransi 10 menit
                 $jamMasukToleransi = $jamMasukNormal->copy()->addMinutes(10);
 
-                // Hitung selisih menit antara jam absen dan jam masuk normal
-                $selisihMenit = $jamMasukNormal->diffInMinutes($jamAbsen, false);
-
-                // Tentukan status berdasarkan waktu absen
-                if ($jamAbsen->lt($jamMasukNormal)) {
-                    // Datang sebelum jam masuk
-                    $item->keterangan_dinamis = 'Hadir';
-                } elseif ($jamAbsen->between($jamMasukNormal, $jamMasukToleransi)) {
-                    // Datang dalam toleransi 10 menit
+                // Logika status
+                if ($jamAbsen->lt($jamMasukToleransi)) {
+                    // Masuk sebelum atau tepat dalam 10 menit toleransi
                     $item->keterangan_dinamis = 'Hadir';
                 } elseif ($jamAbsen->between($jamMasukToleransi, $jamKeluarNormal)) {
-                    // Datang lewat dari 10 menit setelah jam masuk tapi masih dalam jam kerja
-                    $item->keterangan_dinamis = 'Terlambat';
+                    // Masuk setelah toleransi tapi masih dalam jam kerja
+                    $item->keterangan_dinamis = 'Hadir (Terlambat)';
                 } else {
-                    // Datang setelah jam kerja berakhir
+                    // Masuk setelah jam kerja selesai
                     $item->keterangan_dinamis = 'Tidak Hadir';
                 }
             } else {
-                // Jika tidak ada data absen masuk
+                // Belum absen masuk sama sekali
                 $item->keterangan_dinamis = 'Tidak Hadir';
             }
         }
+
 
 
         // Group berdasarkan tanggal
@@ -385,48 +383,48 @@ class AbsensiController extends Controller
     }
 
     public function import(Request $request)
-{
-    $request->validate([
-        'file' => 'required|file|mimes:csv,txt|max:2048',
-    ]);
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt|max:2048',
+        ]);
 
-    $file = $request->file('file');
-    $handle = fopen($file->getRealPath(), 'r');
-    $delimiter = ';';
+        $file = $request->file('file');
+        $handle = fopen($file->getRealPath(), 'r');
+        $delimiter = ';';
 
-    // Lewati baris pertama (header)
-    fgetcsv($handle, 1000, $delimiter);
+        // Lewati baris pertama (header)
+        fgetcsv($handle, 1000, $delimiter);
 
-    $count = 0;
+        $count = 0;
 
-    while (($data = fgetcsv($handle, 1000, $delimiter)) !== false) {
-        // Pastikan urutan kolom sama seperti di exportAll()
-        [$no, $departemen, $nama, $no_id, $tanggal, $waktu, $tipe_absen, $shift, $keterangan] = $data;
+        while (($data = fgetcsv($handle, 1000, $delimiter)) !== false) {
+            // Pastikan urutan kolom sama seperti di exportAll()
+            [$no, $departemen, $nama, $no_id, $tanggal, $waktu, $tipe_absen, $shift, $keterangan] = $data;
 
-        $user = User::where('badge_number', $no_id)->first();
-        if ($user) {
-            $tanggalWaktu = Carbon::createFromFormat('d/m/Y H:i:s', "$tanggal $waktu");
+            $user = User::where('badge_number', $no_id)->first();
+            if ($user) {
+                $tanggalWaktu = Carbon::createFromFormat('d/m/Y H:i:s', "$tanggal $waktu");
 
-            Absensi::updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'tanggal_waktu' => $tanggalWaktu,
-                    'tipe_absen' => strtolower($tipe_absen),
-                ],
-                [
-                    'jam_kerja_id' => optional(JamKerja::where('nama_shift', $shift)->first())->id,
-                    'keterangan_dinamis' => $keterangan,
-                ]
-            );
+                Absensi::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'tanggal_waktu' => $tanggalWaktu,
+                        'tipe_absen' => strtolower($tipe_absen),
+                    ],
+                    [
+                        'jam_kerja_id' => optional(JamKerja::where('nama_shift', $shift)->first())->id,
+                        'keterangan_dinamis' => $keterangan,
+                    ]
+                );
 
-            $count++;
+                $count++;
+            }
         }
+
+        fclose($handle);
+
+        return redirect()->back()->with('success', "Import berhasil! $count data absensi telah ditambahkan/diupdate.");
     }
-
-    fclose($handle);
-
-    return redirect()->back()->with('success', "Import berhasil! $count data absensi telah ditambahkan/diupdate.");
-}
 
 
     public function data(Request $request)

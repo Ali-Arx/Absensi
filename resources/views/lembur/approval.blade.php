@@ -112,7 +112,7 @@
                                     <a href="" class="btn btn-info btn-sm" title="Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <form action="{{ route('lembur.approve', $item->id) }}" method="POST"
+                                    <form action="{{ route('lembur.approval', $item->id) }}" method="POST"
                                         class="d-inline">
                                         @csrf
 

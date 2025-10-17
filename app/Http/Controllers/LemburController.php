@@ -161,7 +161,7 @@ class LemburController extends Controller
     /**
      * Menyetujui lembur
      */
-    public function approve(Request $request, Lembur $lembur)
+    public function approval(Request $request, Lembur $lembur)
     {
         $lembur->update([
             'status_pengajuan' => 'disetujui',

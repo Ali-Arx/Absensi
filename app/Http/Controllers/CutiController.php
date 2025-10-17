@@ -218,11 +218,11 @@ class CutiController extends Controller
         $validated = $request->validate([
             'status_pengajuan' => ['required', Rule::in(['disetujui', 'ditolak'])],
             'komentar' => 'nullable|string|max:255',
-            'ttd_atasan_base64' => 'required|string', // TTD wajib diisi
+            'tanda_tangan_approval' => 'required|string', // TTD wajib diisi
         ]);
 
         // 2. Proses dan Simpan Tanda Tangan (Base64) sebagai File Gambar
-        $imageData = $validated['ttd_atasan_base64'];
+        $imageData = $validated['tanda_tangan_approval'];
 
         // Pisahkan header dari data base64
         // contoh: "data:image/png;base64,iVBORw0KGgo..."
@@ -236,14 +236,14 @@ class CutiController extends Controller
         $path = 'public/tanda_tangan_atasan/' . $imageName;
 
         // Simpan file ke storage
-        Storage::put($path, $imageData);
+        Storage::get($path, $imageData);
 
         // 3. Update Data Cuti di Database
         $cuti->update([
             'status_pengajuan' => $validated['status_pengajuan'],
             'komentar' => $validated['komentar'],
-            'tanda_tangan_approval' => Storage::url($path), // Simpan URL publik ke file
-            'tgl_disetujui' => now(), // Catat tanggal persetujuan
+            'tanda_tangan_approval' => Storage::url($path), 
+            'tgl_disetujui' => now(), 
         ]);
 
         // 4. Kembalikan ke halaman sebelumnya dengan pesan sukses
