@@ -7,9 +7,16 @@ use Illuminate\Http\Request;
 use App\Models\Lembur;
 use App\Models\JamKerja;
 use App\Models\User;
+use App\Exports\LemburExport;
+use App\Imports\LemburImport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Validators\ValidationException;
+use Illuminate\Support\Facades\Log;
+use Exception;
+
 
 class LemburController extends Controller
 {
@@ -39,6 +46,8 @@ class LemburController extends Controller
             }
         } elseif ($user->role === 'hr') {
             $approvalUsers = User::where('role', 'direktur')->get();
+        } elseif ($user->role === 'direktur') {
+            $approvalUsers = User::where('role', 'direktur')->get();
         }
 
         // Tambahan: Handle jika setelah semua logika, $approvalUsers masih kosong
@@ -58,7 +67,6 @@ class LemburController extends Controller
         $request->validate([
             'tgl_pengajuan' => 'required|date',
             'section' => 'nullable|string|max:100',
-            'jam_kerja_id' => 'required|exists:jam_kerjas,id',
             'tgl_jam_mulai' => 'required',
             'tgl_jam_selesai' => 'required',
             'approver_id' => 'required',
@@ -96,7 +104,6 @@ class LemburController extends Controller
             'user_id' => Auth::id(),
             'tgl_pengajuan' => $request->tgl_pengajuan,
             'section' => $request->section,
-            'jam_kerja_id' => $request->jam_kerja_id,
             'tgl_jam_mulai' => $request->tgl_jam_mulai,
             'tgl_jam_selesai' => $request->tgl_jam_selesai,
             'approver_id' => $approverId,
@@ -114,12 +121,12 @@ class LemburController extends Controller
      */
     public function data(Request $request)
     {
-// Filter
+        // Filter
         $status = $request->get('status', '');
         $bulan = $request->get('bulan', date('n'));
         $tahun = $request->get('tahun', date('Y'));
         $department = $request->get('department', '');
-        $tanggal = $request->get('tanggal', );
+        $tanggal = $request->get('tanggal',);
 
         $departments = User::select('departement')
             ->whereNotNull('departement')
@@ -145,6 +152,8 @@ class LemburController extends Controller
                 $userQuery->where('departement', $department);
             });
         }
+
+
 
         $lemburs = $query->paginate(10);
 
@@ -219,11 +228,21 @@ class LemburController extends Controller
      */
     public function show($id)
     {
-        // Tambahkan relasi 'approver' agar bisa akses nama atasan
-        $lembur = Lembur::with(['user', 'approver', 'jamKerja'])->findOrFail($id);
+        $lembur = Lembur::with(['user', 'approver'])->find($id);
 
-        return response()->json($lembur);
+        if (!$lembur) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tidak ditemukan.'
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $lembur
+        ]);
     }
+
 
     public function processApproval(Request $request, Lembur $Lembur)
     {
@@ -254,5 +273,92 @@ class LemburController extends Controller
 
         // 4. Kembalikan ke halaman sebelumnya dengan pesan sukses
         return back()->with('success', 'Status pengajuan Lembur telah berhasil diperbarui.');
+    }
+
+    public function exportLembur(Request $request)
+    {
+        // --- (MULAI) KODE SALINAN DARI FUNGSI data() DENGAN PERBAIKAN ---
+
+        // Filter
+        $status = $request->get('status', '');
+        $department = $request->get('department', '');
+        $tanggal = $request->get('tanggal', ''); // Perbaikan: Menambahkan default ''
+        $tahun = $request->get('tahun', date('Y'));
+
+        // PERBAIKAN: Tambahkan Peta Bulan untuk mencegah error Carbon
+        $bulanInput = $request->get('bulan', date('n'));
+        $bulanMap = [
+            'Januari' => 1,
+            'Februari' => 2,
+            'Maret' => 3,
+            'April' => 4,
+            'Mei' => 5,
+            'Juni' => 6,
+            'Juli' => 7,
+            'Agustus' => 8,
+            'September' => 9,
+            'Oktober' => 10,
+            'November' => 11,
+            'Desember' => 12
+        ];
+        $bulan = $bulanMap[$bulanInput] ?? (int)$bulanInput; // $bulan pasti angka
+
+        // $departments tidak diperlukan untuk export
+
+        // Query Lembur
+        $query = Lembur::with(['user', 'approver']) // Diubah: Muat relasi approver
+            ->whereMonth('tgl_pengajuan', $bulan)
+            ->whereYear('tgl_pengajuan', $tahun);
+
+        if ($status) {
+            $query->where('status_pengajuan', $status);
+        }
+
+        if ($tanggal) {
+            $query->whereDate('tgl_pengajuan', $tanggal);
+        }
+
+        if ($department) {
+            $query->whereHas('user', function ($userQuery) use ($department) {
+                $userQuery->where('departement', $department);
+            });
+        }
+
+        // --- (SELESAI) KODE SALINAN ---
+
+
+        // --- GANTI BAGIAN 'paginate' DENGAN 'get()' ---
+        $lemburs = $query->get(); // Ambil SEMUA data yang terfilter
+
+        // Tentukan nama file
+        $namaBulan = Carbon::create()->month($bulan)->format('F'); // Misal: "January"
+        $fileName = 'Laporan_Lembur_' . $namaBulan . '_' . $tahun . '.xlsx';
+
+        // Panggil Class Export baru dengan data $lemburs yang sudah difilter
+        return Excel::download(new LemburExport($lemburs), $fileName);
+    }
+
+    public function importLembur(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls'
+        ]);
+
+        try {
+            Excel::import(new LemburImport, $request->file('file'));
+
+            return redirect()->back()->with('success', 'Data lembur berhasil diimpor!');
+        } catch (ValidationException $e) {
+            $failures = $e->failures();
+            $errorMessages = [];
+            foreach ($failures as $failure) {
+                $errorMessages[] = "Baris " . $failure->row() . ": " . implode(", ", $failure->errors());
+            }
+            return redirect()->back()->with('error', 'Gagal impor data. Periksa baris berikut: <br>' . implode('<br>', $errorMessages));
+        } catch (Exception $e) {
+            // Tangani error umum lainnya
+            Log::error('Gagal impor lembur: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan sistem saat impor.');
+        }
     }
 }

@@ -63,7 +63,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/cuti/riwayat/export', [CutiController::class, 'export'])->name('cuti.riwayat.export');
 
         Route::get('/cuti/data', [CutiController::class, 'data'])->name('cuti.data');
-        Route::get('/cuti/data/export', [CutiController::class, 'exportData'])->name('cuti.data.export');
+        Route::get('/cuti/export-data', [CutiController::class, 'exportCuti'])->name('cuti.export.data');
+        Route::post('/cuti/import-data', [CutiController::class, 'importCuti'])->name('cuti.import.data');
         Route::get('/cuti/data/filter', [CutiController::class, 'filterData'])->name('cuti.data.filter');
 
         // Route approval 
@@ -81,7 +82,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/absensi/riwayat/export', [AbsensiController::class, 'export'])->name('absensi.riwayat.export');
     Route::get('/absensi/data', [AbsensiController::class, 'data'])->name('absensi.data');
     Route::get(uri: '/absensi/data/export-all', action: [AbsensiController::class, 'exportAll'])->name(name: 'absensi.data.exportAll');
-    Route::get(uri: '/absensi/data/import', action: [AbsensiController::class, 'import'])->name(name: 'absensi.data.import');
+    Route::post(uri: '/absensi/data/import', action: [AbsensiController::class, 'import'])->name(name: 'absensi.data.import');
 
     // Profil
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -91,13 +92,16 @@ Route::middleware('auth')->group(function () {
 
     // Fitur Lembur 
     Route::middleware(['auth'])->group(function () {
+        Route::get('/lembur/detail/{id}', [LemburController::class, 'show'])->name('lembur.detail');
         Route::get('/lembur/create', [LemburController::class, 'create'])->name('lembur.create');
         Route::post('/lembur/store', [LemburController::class, 'store'])->name('lembur.store');
         Route::get('/lembur/data', [LemburController::class, 'data'])->name('lembur.data');
         Route::get('/lembur/approval', [LemburController::class, 'approvalIndex'])->name('lembur.approval');
         Route::get('/lembur/riwayat', [LemburController::class, 'riwayat'])->name('lembur.riwayat');
-        Route::get('/lembur/detail/{id}', [LemburController::class, 'show'])->name('lembur.detail');
         Route::put('/lembur/{lembur}/process-approval', [LemburController::class, 'processApproval'])->name('lembur.processApproval');
+        // (Asumsi di dalam grup controller LemburController Anda)
+        Route::get('/lembur/export-data', [LemburController::class, 'exportLembur'])->name('lembur.export.data');
+        Route::post('/lembur/import-data', [LemburController::class, 'importLembur'])->name('lembur.import.data');
     });
 
 

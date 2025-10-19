@@ -27,7 +27,7 @@ class LaporanAbsensiExport implements FromCollection, WithHeadings, WithMapping
     }
 
     /**
-     * Definisikan Header
+     * 1. PERUBAHAN: Header 'Kode Verifikasi' ditambahkan
      */
     public function headings(): array
     {
@@ -41,13 +41,13 @@ class LaporanAbsensiExport implements FromCollection, WithHeadings, WithMapping
             'Waktu Pulang',
             'Total Jam',
             'Shift',
-            'Keterangan' // Ini adalah status (Hadir, Terlambat, Izin, dll)
+            'Kode Verifikasi', // <-- KOLOM BARU DITAMBAHKAN
+            'Keterangan' 
         ];
     }
 
     /**
-     * Petakan data untuk setiap baris
-     * $records adalah grup absensi (masuk/pulang) untuk 1 user pada 1 hari
+     * 2. PERUBAHAN: Logika 'Shift' dan 'Kode Verifikasi' diperbarui
      */
     public function map($records): array
     {
@@ -59,7 +59,7 @@ class LaporanAbsensiExport implements FromCollection, WithHeadings, WithMapping
         $masuk = $records->firstWhere('tipe_absen', 'masuk');
         $pulang = $records->firstWhere('tipe_absen', 'pulang');
 
-        // Ambil data user (pastikan user ada)
+        // Ambil data user
         $departemen = $user ? $user->departement : '-';
         $nama = $user ? $user->name : 'User Dihapus';
         $badge_number = $user ? $user->badge_number : '-';
@@ -75,11 +75,18 @@ class LaporanAbsensiExport implements FromCollection, WithHeadings, WithMapping
             $totalJam = $waktuMasuk->diff($waktuPulang)->format('%H:%I:%S');
         }
 
-        // Ambil shift
-        $shift = $masuk ? ($masuk->jamKerja->nama_shift ?? '-') : '-';
+        // --- (PERUBAHAN 1) Ambil JENIS Shift ---
+        // Mengambil 'jenis_shift' dari relasi jamKerja, bukan 'nama_shift'
+        $shift = $masuk ? ($masuk->jamKerja->jenis_shift ?? '-') : '-';
+
+        // --- (LOGIKA BARU 2) Kode Verifikasi ---
+        // Cek rekaman 'masuk' apakah ada foto DAN lokasi
+        $kode_verifikasi = '-'; // Default (dianggap absen mesin)
+        if ($masuk && !empty($masuk->foto) && !empty($masuk->lokasi)) {
+            $kode_verifikasi = 'Online'; // Absen via HP (ada foto & lokasi)
+        }
 
         // Ambil keterangan (yang sudah dihitung di controller)
-        // 'status_hadir' adalah properti yg kita buat di fungsi data()
         $keterangan = $records->status_hadir ?? 'Error'; 
 
         return [
@@ -91,7 +98,8 @@ class LaporanAbsensiExport implements FromCollection, WithHeadings, WithMapping
             $masuk ? Carbon::parse($masuk->tanggal_waktu)->format('H:i') : '-',
             $pulang ? Carbon::parse($pulang->tanggal_waktu)->format('H:i') : '-',
             $totalJam,
-            $shift,
+            $shift, // <-- Data 'jenis_shift' akan tampil di sini
+            $kode_verifikasi, // <-- Data 'Kode Verifikasi' akan tampil di sini
             $keterangan
         ];
     }

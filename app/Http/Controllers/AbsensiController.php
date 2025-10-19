@@ -444,10 +444,12 @@ class AbsensiController extends Controller
             }
             return redirect()->back()->with('error', 'Gagal impor data. Periksa baris berikut: <br>' . implode('<br>', $errorMessages));
         } catch (Exception $e) {
-            // Tangani error umum lainnya (misal dari DB Transaction)
-            Log::error('Gagal impor laporan: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Terjadi kesalahan sistem saat impor: ' . $e->getMessage());
-        }
+        // Tangani error umum lainnya
+        Log::error('Gagal impor absensi: '." ". $e->getMessage());
+        
+        // TAMPILKAN PESAN ERROR YANG SEBENARNYA
+        return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+    }
     }
 
 

@@ -61,19 +61,7 @@
                     </div>
 
                     <!-- Row 2: Pilih Shift -->
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Pilih Shift</label>
-                        <div class="d-flex align-items-center gap-2 p-3 ">
-                            <select name="jam_kerja_id" class="form-select" required>
-                                <option value="">-- Pilih Shift --</option>
-                                @foreach ($jamKerjas as $jam)
-                                    <option value="{{ $jam->id }}">
-                                        {{ ucfirst($jam->jenis_shift) }} ({{ $jam->jam_masuk }} - {{ $jam->jam_keluar }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
+                   
 
                     <!-- Row 3: Waktu (2 Input Terpisah) -->
                     <div class="mb-3">

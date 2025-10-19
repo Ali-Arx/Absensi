@@ -10,6 +10,23 @@
             <h1 class="h3 mb-0 text-gray-800">Data Cuti</h1>
         </div>
 
+        <div class="row mb-4">
+            <div class="col-md-12">
+                @if (session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+                @if (session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+            </div>
+        </div>
+
         <!-- Filter Section -->
         <div class="card shadow mb-4">
             <div class="card-body">
@@ -76,10 +93,11 @@
                         <button type="submit" class="btn btn-primary btn-sm me-2">
                             <i class="fas fa-filter me-1"></i> Terapkan
                         </button>
-                        <button type="button" class="btn btn-success btn-sm me-2">
-                            <i class="fas fa-file-export me-1"></i> Export
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm">
+                        <a href="{{ route('cuti.export.data', request()->query()) }}" class="btn btn-success btn-sm me-2">
+                            <i class="fas fa-file-excel me-1"></i> Export
+                        </a>
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#importCutiModal">
                             <i class="fas fa-file-import me-1"></i> Import
                         </button>
                     </div>
@@ -226,6 +244,47 @@
                     <div id="action-buttons"></div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="importCutiModal" tabindex="-1" aria-labelledby="importCutiModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <form action="{{ route('cuti.import.data') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importCutiModalLabel">Import Data Cuti</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="fileImportCuti" class="form-label">Pilih file (Excel .xlsx):</label>
+                            <input type="file" name="file" id="fileImportCuti" class="form-control" required>
+                        </div>
+                        <div class="alert alert-info p-2">
+                            <small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                <strong>Template Wajib:</strong> Gunakan file Excel dari "Export Cuti".
+                                Data akan di-update berdasarkan "No ID Karyawan" dan "Tgl Mulai".
+                            </small>
+                        </div>
+                        <div class="alert alert-warning p-2">
+                            <small>
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                <strong>Pencocokan Atasan:</strong> "Nama Atasan" akan dicocokkan berdasarkan nama. Pastikan
+                                nama di Excel sama persis dengan nama di database.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-file-import me-1"></i> Import & Update
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 

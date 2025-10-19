@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-// Impor yang tidak perlu (WithColumnFormatting, Storage) telah dihapus
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -29,7 +28,7 @@ class AbsensiExport implements
     }
 
     /**
-     * 1. Header telah diperbarui (Lokasi/Foto dihapus)
+     * Header (Tetap Sama)
      */
     public function headings(): array
     {
@@ -40,19 +39,16 @@ class AbsensiExport implements
             'No ID',
             'Tanggal',
             'Waktu Masuk',
-            // 'Lokasi Masuk',  <- Dihapus
-            // 'Foto Masuk',    <- Dihapus
             'Waktu Pulang',
-            // 'Lokasi Pulang', <- Dihapus
-            // 'Foto Pulang',   <- Dihapus
             'Total Jam',
-            'Shift',
+            'Shift', // Header tetap 'Shift'
+            'Kode Verifikasi', 
             'Keterangan'
         ];
     }
 
     /**
-     * 2. Pemetaan data telah diperbarui (Lokasi/Foto dihapus)
+     * Pemetaan data (Logika Shift Diperbarui)
      */
     public function map($records): array
     {
@@ -75,8 +71,17 @@ class AbsensiExport implements
             $keterangan = 'Data Tidak Lengkap';
         }
         
-        $shift = $masuk ? ($masuk->jamKerja->nama_shift ?? '-') : '-';
         $tanggal = Carbon::parse($records->first()->tanggal_waktu)->format('d/m/Y');
+        
+        $kode_verifikasi = '-'; 
+        if ($masuk && !empty($masuk->foto) && !empty($masuk->lokasi)) {
+            $kode_verifikasi = 'Online'; 
+        }
+
+        // --- INI PERUBAHANNYA ---
+        // Mengambil 'jenis_shift' dari relasi jamKerja, bukan 'nama_shift'
+        $shift = $masuk ? ($masuk->jamKerja->jenis_shift ?? '-') : '-';
+        // -------------------------
         
         return [
             $this->rowNumber,
@@ -84,22 +89,12 @@ class AbsensiExport implements
             $this->user->name,
             $this->user->badge_number ?? '-',
             $tanggal,
-            
-            // Data Masuk
             $masuk ? Carbon::parse($masuk->tanggal_waktu)->format('H:i') : '-', 
-            // Data Lokasi/Foto dihapus
-            
-            // Data Pulang
             $pulang ? Carbon::parse($pulang->tanggal_waktu)->format('H:i') : '-',
-            // Data Lokasi/Foto dihapus
-
-            // Data Lainnya
             $totalJam,
-            $shift,
+            $shift, // <-- Data 'jenis_shift' akan tampil di sini
+            $kode_verifikasi, 
             $keterangan
         ];
     }
-
-    // 3. Method helper (createMapsLink, createHyperlink) telah dihapus
-    // 4. Method columnFormats() telah dihapus
 }
