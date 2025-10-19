@@ -17,38 +17,57 @@
 
                     <div class="col-md-3">
                         <label for="department" class="form-label small fw-bold">Department</label>
-                        <select name="department" id="department" class="form-select">
+                        <select name="department" id="department" class="form-control">
                             <option value="">Semua</option>
-                            <option value="Staff">Staff</option>
-                            <option value="Supervisor">Supervisor</option>
-                            <option value="Manager">Manager</option>
+
+                            {{-- Ganti <option> statis Anda dengan loop ini --}}
+                            @foreach ($departments as $dept)
+                                <option value="{{ $dept }}" {{ request('department') == $dept ? 'selected' : '' }}>
+                                    {{ $dept }}
+                                </option>
+                            @endforeach
+
                         </select>
                     </div>
 
                     <div class="col-md-3">
-                        <label for="status_pengajuan" class="form-label small fw-bold">Status Cuti</label>
-                        <select name="status_pengajuan" id="status_pengajuan" class="form-select">
+                        <label class="form-label fw-semibold">Status Cuti</label>
+                        <select name="status" class="form-control">
                             <option value="">Semua Status</option>
-                            <option value="Diajukan">Diajukan</option>
-                            <option value="Disetujui">Disetujui</option>
-                            <option value="Ditolak">Ditolak</option>
+                            <option value="menunggu" {{ request('status_pengajuan') == 'menunggu' ? 'selected' : '' }}>
+                                Menunggu</option>
+                            <option value="disetujui" {{ request('status_pengajuan') == 'disetujui' ? 'selected' : '' }}>
+                                Disetujui
+                            </option>
+                            <option value="ditolak" {{ request('status_pengajuan') == 'ditolak' ? 'selected' : '' }}>
+                                Ditolak
+                            </option>
                         </select>
                     </div>
 
+
                     <div class="col-md-3">
-                        <label for="bulan" class="form-label small fw-bold">Bulan</label>
-                        <select name="bulan" id="bulan" class="form-select">
-                            @foreach (['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $b)
-                                <option value="{{ $b }}">{{ $b }}</option>
+                        <label for="bulan">Bulan</label>
+                        <select class="form-control" id="bulan" name="bulan">
+                            @foreach (['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $namaBulan)
+                                {{-- value diubah menjadi $loop->iteration (1, 2, 3, ...) --}}
+                                <option value="{{ $loop->iteration }}" {{-- Logika 'selected' diubah untuk membandingkan angka (date('n')) --}}
+                                    {{ request('bulan', date('n')) == $loop->iteration ? 'selected' : '' }}>
+
+                                    {{ $namaBulan }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="col-md-3">
-                        <label for="tahun" class="form-label small fw-bold">Tahun</label>
-                        <select name="tahun" id="tahun" class="form-select">
-                            @for ($y = now()->year; $y >= 2020; $y--)
-                                <option value="{{ $y }}">{{ $y }}</option>
+                        <label class="form-label fw-semibold">Tahun</label>
+                        <select name="tahun" class="form-control">
+                            @for ($i = 2020; $i <= 2030; $i++)
+                                <option value="{{ $i }}"
+                                    {{ request('tahun', date('Y')) == $i ? 'selected' : '' }}>
+                                    {{ $i }}
+                                </option>
                             @endfor
                         </select>
                     </div>
@@ -134,7 +153,6 @@
                         </tbody>
                     </table>
                     <div class="d-flex justify-content-between align-items-center mt-3">
-                        
                         <div>
                             {{ $cutis->appends(request()->query())->links() }}
                         </div>

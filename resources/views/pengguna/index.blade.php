@@ -31,6 +31,26 @@
             </div>
         @endif
 
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {!! session('error') !!} {{-- Kita pakai {!! !!} agar <br> bisa ter-render --}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        {{-- Menampilkan Error Validasi (PENTING!) --}}
+        @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Error Validasi!</strong>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         <!-- Filter Card -->
         <div class="card shadow mb-4">
             <div class="card-body">
@@ -48,9 +68,12 @@
                             <label for="department" class="form-label font-weight-bold">Department</label>
                             <select class="form-control" id="department" name="department">
                                 <option value="">Staff</option>
-                                <option value="HR" {{ request('department') == 'HR' ? 'selected' : '' }}>HR</option>
-                                <option value="IT" {{ request('department') == 'IT' ? 'selected' : '' }}>IT</option>
-                                <option value="Finance" {{ request('department') == 'Finance' ? 'selected' : '' }}>Finance
+                                <option value="HR" {{ request('department') == 'Office' ? 'selected' : '' }}>Office
+                                </option>
+                                <option value="IT" {{ request('department') == 'Sales' ? 'selected' : '' }}>Sales
+                                </option>
+                                <option value="Finance" {{ request('department') == 'Productionh' ? 'selected' : '' }}>
+                                    Productionh
                                 </option>
                                 <option value="Operations" {{ request('department') == 'Operations' ? 'selected' : '' }}>
                                     Operations</option>
@@ -86,8 +109,13 @@
                             <a href="{{ route('pengguna.index') }}" class="btn btn-secondary">
                                 <i class="fas fa-redo"></i> Reset
                             </a>
+                            <button type="button" class="btn btn-success me-2" data-bs-toggle="modal"
+                                data-bs-target="#importModal">
+                                <i class="fas fa-file-import me-1"></i> Import
+                            </button>
                         </div>
                     </div>
+
                 </form>
             </div>
         </div>
@@ -125,12 +153,12 @@
                             @forelse($users ?? [] as $index => $user)
                                 <tr>
                                     <td class="text-center">{{ $loop->iteration }}</td>
-                                    <td>{{ $user->employee_id ?? '-' }}</td>
-                                    <td>{{ $user->department ?? '-' }}</td>
+                                    <td>{{ $user->badge_number ?? '-' }}</td>
+                                    <td>{{ $user->departement ?? '-' }}</td>
                                     <td>{{ $user->name ?? '-' }}</td>
                                     <td>{{ $user->join_date ? date('d/m/Y', strtotime($user->join_date)) : '-' }}</td>
-                                    <td>{{ $user->position ?? '-' }}</td>
-                                    <td>{{ $user->phone ?? '-' }}</td>
+                                    <td>{{ $user->jabatan ?? '-' }}</td>
+                                    <td>{{ $user->No_HP ?? '-' }}</td>
                                     <td class="text-center">
                                         @if (($user->status ?? '') == 'active')
                                             <span class="badge badge-success px-2 py-1">Active</span>
@@ -152,11 +180,85 @@
                                                 onclick="confirmDelete({{ $user->id }})" title="Hapus">
                                                 Del
                                             </button>
+                                            <div class="modal fade" id="detailModal{{ $user->id }}" tabindex="-1"
+                                                role="dialog" aria-labelledby="detailModalLabel{{ $user->id }}"
+                                                aria-hidden="true">
+                                                <div class="modal-dialog modal-lg" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-info text-white">
+                                                            <h5 class="modal-title"
+                                                                id="detailModalLabel{{ $user->id }}">
+                                                                <i class="fas fa-info-circle"></i> Detail Pengguna
+                                                            </h5>
+                                                            <button type="button" class="close text-white"
+                                                                data-dismiss="modal" aria-label="Close">
+                                                                <span>&times;</span>
+                                                            </button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <table class="table table-bordered table-striped">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <th width="30%" class="bg-light">No ID</th>
+                                                                        <td>{{ $user->badge_number ?? '-' }}</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th class="bg-light">Nama</th>
+                                                                        <td>{{ $user->name ?? '-' }}</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th class="bg-light">Email</th>
+                                                                        <td>{{ $user->email ?? '-' }}</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th class="bg-light">Departemen</th>
+                                                                        <td>{{ $user->departement ?? '-' }}</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th class="bg-light">Jabatan</th>
+                                                                        <td>{{ $user->jabatan ?? '-' }}</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th class="bg-light">Tanggal Masuk</th>
+                                                                        <td>{{ $user->join_date ? date('d F Y', strtotime($user->join_date)) : '-' }}
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th class="bg-light">No HP</th>
+                                                                        <td>{{ $user->No_HP ?? '-' }}</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th class="bg-light">Status</th>
+                                                                        <td>
+                                                                            @if ($user->status == 'active')
+                                                                                <span
+                                                                                    class="badge badge-success px-3 py-2">Active</span>
+                                                                            @else
+                                                                                <span
+                                                                                    class="badge badge-danger px-3 py-2">Inactive</span>
+                                                                            @endif
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th class="bg-light">Role</th>
+                                                                        <td>{{ ucfirst($user->role) ?? '-' }}</td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary"
+                                                                data-dismiss="modal">
+                                                                <i class="fas fa-times"></i> Tutup
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
-
-                                <!-- Edit Modal -->
+                                <!-- /.container-fluid -->
                                 <div class="modal fade" id="editModal{{ $user->id }}" tabindex="-1"
                                     role="dialog">
                                     <div class="modal-dialog modal-lg" role="document">
@@ -179,7 +281,7 @@
                                                                 <label class="font-weight-bold">No ID <span
                                                                         class="text-danger">*</span></label>
                                                                 <input type="text" class="form-control"
-                                                                    name="employee_id" value="{{ $user->badge_number }}"
+                                                                    name="badge_number" value="{{ $user->badge_number }}"
                                                                     required>
                                                             </div>
                                                         </div>
@@ -204,7 +306,8 @@
                                                         <div class="col-md-6">
                                                             <div class="form-group">
                                                                 <label class="font-weight-bold">Password <small
-                                                                        class="text-muted">(Kosongkan jika tidak
+                                                                        class="text-muted">(Kosongkan jika
+                                                                        tidak
                                                                         diubah)</small></label>
                                                                 <input type="password" class="form-control"
                                                                     name="password" placeholder="Masukkan password baru">
@@ -216,20 +319,20 @@
                                                             <div class="form-group">
                                                                 <label class="font-weight-bold">Departmen <span
                                                                         class="text-danger">*</span></label>
-                                                                <select class="form-control" name="department" required>
+                                                                <select class="form-control" name="departement" required>
                                                                     <option value="">Pilih Departmen</option>
-                                                                    <option value="HR"
-                                                                        {{ $user->department == 'HR' ? 'selected' : '' }}>
-                                                                        HR</option>
-                                                                    <option value="IT"
-                                                                        {{ $user->department == 'IT' ? 'selected' : '' }}>
-                                                                        IT</option>
-                                                                    <option value="Finance"
-                                                                        {{ $user->department == 'Finance' ? 'selected' : '' }}>
-                                                                        Finance</option>
-                                                                    <option value="Operations"
-                                                                        {{ $user->department == 'Operations' ? 'selected' : '' }}>
-                                                                        Operations</option>
+                                                                    <option value="Office"
+                                                                        {{ $user->departement == 'Office' ? 'selected' : '' }}>
+                                                                        Office</option>
+                                                                    <option value="Sales"
+                                                                        {{ $user->departement == 'Sales' ? 'selected' : '' }}>
+                                                                        Sales</option>
+                                                                    <option value="Production"
+                                                                        {{ $user->departement == 'Production' ? 'selected' : '' }}>
+                                                                        Production</option>
+                                                                    <option value="Engineering"
+                                                                        {{ $user->departement == 'Engineering' ? 'selected' : '' }}>
+                                                                        Engineering</option>
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -237,9 +340,8 @@
                                                             <div class="form-group">
                                                                 <label class="font-weight-bold">Jabatan <span
                                                                         class="text-danger">*</span></label>
-                                                                <input type="text" class="form-control"
-                                                                    name="position" value="{{ $user->position }}"
-                                                                    required>
+                                                                <input type="text" class="form-control" name="jabatan"
+                                                                    value="{{ $user->jabatan }}" required>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -257,8 +359,8 @@
                                                             <div class="form-group">
                                                                 <label class="font-weight-bold">No Hp <span
                                                                         class="text-danger">*</span></label>
-                                                                <input type="text" class="form-control" name="phone"
-                                                                    value="{{ $user->phone }}" required>
+                                                                <input type="text" class="form-control" name="No_HP"
+                                                                    value="{{ $user->No_HP }}" required>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -272,6 +374,24 @@
                                                             <option value="inactive"
                                                                 {{ $user->status == 'inactive' ? 'selected' : '' }}>
                                                                 Inactive</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="font-weight-bold">Role <span
+                                                                class="text-danger">*</span></label>
+                                                        <select class="form-control" name="role" required>
+                                                            <option value="hr"
+                                                                {{ $user->role == 'hr' ? 'selected' : '' }}>HR
+                                                            </option>
+                                                            <option value="direktur"
+                                                                {{ $user->role == 'direktur' ? 'selected' : '' }}>
+                                                                Direktur</option>
+                                                            <option value="atasan"
+                                                                {{ $user->role == 'atasan' ? 'selected' : '' }}>
+                                                                Atasan</option>
+                                                            <option value="karyawan"
+                                                                {{ $user->role == 'karyawan' ? 'selected' : '' }}>
+                                                                Karyawan</option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -288,6 +408,8 @@
                                         </div>
                                     </div>
                                 </div>
+
+
                             @empty
                                 <tr>
                                     <td colspan="9" class="text-center py-4">
@@ -298,84 +420,20 @@
                             @endforelse
                         </tbody>
                     </table>
+
+
+                </div>
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $users->links() }}
                 </div>
 
                 <!-- Pagination -->
-                @if (isset($users) && method_exists($users, 'links'))
-                    <div class="d-flex justify-content-center mt-3">
-                        {{ $users->links() }}
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
-    <!-- Detail Modal -->
-    <div class="modal fade" id="detailModal{{ $user->id }}" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title">
-                        <i class="fas fa-info-circle"></i> Detail Pengguna
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <tbody>
-                                <tr>
-                                    <th width="30%" class="bg-light">No ID</th>
-                                    <td>{{ $user->badge_number ?? '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">Nama</th>
-                                    <td>{{ $user->name ?? '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">Email</th>
-                                    <td>{{ $user->email ?? '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">Departmen</th>
-                                    <td>{{ $user->department ?? '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">Jabatan</th>
-                                    <td>{{ $user->position ?? '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">Tanggal Masuk</th>
-                                    <td>{{ $user->join_date ? date('d F Y', strtotime($user->join_date)) : '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">No Hp</th>
-                                    <td>{{ $user->phone ?? '-' }}</td>
-                                </tr>
-                                <tr>
-                                    <th class="bg-light">Status</th>
-                                    <td>
-                                        @if (($user->status ?? '') == 'active')
-                                            <span class="badge badge-success px-3 py-2">Active</span>
-                                        @else
-                                            <span class="badge badge-danger px-3 py-2">Inactive</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                        <i class="fas fa-times"></i> Tutup
-                    </button>
-                </div>
             </div>
         </div>
     </div>
     <!-- /.container-fluid -->
+
+
 
     <!-- Tambah Data Modal -->
     <div class="modal fade" id="tambahDataModal" tabindex="-1" role="dialog" aria-labelledby="tambahDataModalLabel"
@@ -397,7 +455,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="font-weight-bold">No ID <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="employee_id"
+                                    <input type="text" class="form-control" name="badge_number"
                                         placeholder="Contoh: EMP001" required>
                                 </div>
                             </div>
@@ -428,20 +486,20 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="font-weight-bold">Departmen <span class="text-danger">*</span></label>
-                                    <select class="form-control" name="department" required>
+                                    <label class="font-weight-bold">Department <span class="text-danger">*</span></label>
+                                    <select class="form-control" name="departement" required>
                                         <option value="">Pilih Departmen</option>
-                                        <option value="HR">HR</option>
-                                        <option value="IT">IT</option>
-                                        <option value="Finance">Finance</option>
-                                        <option value="Operations">Operations</option>
+                                        <option value="Office">Office</option>
+                                        <option value="Sales">Sales</option>
+                                        <option value="Production">Production</option>
+                                        <option value="Engineering">Engineering</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="font-weight-bold">Jabatan <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="position"
+                                    <input type="text" class="form-control" name="jabatan"
                                         placeholder="Contoh: Manager" required>
                                 </div>
                             </div>
@@ -457,7 +515,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="font-weight-bold">No Hp <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="phone" placeholder="08XXXXXXXXXX"
+                                    <input type="number" class="form-control" name="No_HP" placeholder="08XXXXXXXXXX"
                                         required>
                                 </div>
                             </div>
@@ -467,6 +525,14 @@
                             <select class="form-control" name="status" required>
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="font-weight-bold">Role <span class="text-danger">*</span></label>
+                            <select class="form-control" name="role" required>
+                                @foreach (['hr', 'direktur', 'atasan', 'karyawan'] as $role)
+                                    <option value="{{ $role }}">{{ ucfirst($role) }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -484,11 +550,41 @@
     </div>
 
     <!-- Form Delete (Hidden) -->
-    <form id="deleteForm" method="POST" style="display: none;">
+
+    <form id="deleteForm" method="POST" style="display:none;">
         @csrf
         @method('DELETE')
     </form>
 
+    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form action="{{ route('pengguna.data.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importModalLabel">Import Data Absensi</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="fileImport" class="form-label">Pilih file (Excel/CSV) untuk diimpor:</label>
+
+                            <input type="file" name="file" id="fileImport" class="form-control" required>
+                        </div>
+                        <small class="text-muted">
+                            Pastikan format file Anda sesuai dengan template yang disediakan.
+                        </small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-file-import me-1"></i> Import Sekarang
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 @endsection
 
 @push('styles')
@@ -524,6 +620,7 @@
 @endpush
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         function confirmDelete(id) {
             Swal.fire({

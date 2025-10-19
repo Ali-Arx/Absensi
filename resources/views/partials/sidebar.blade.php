@@ -92,14 +92,6 @@
             </a>
         </li>
 
-        {{-- PENGATURAN --}}
-        <li class="nav-item">
-            <a class="nav-link" href="">
-                <i class="fas fa-fw fa-cogs"></i>
-                <span>Pengaturan</span>
-            </a>
-        </li>
-
         {{-- ======================================================
         SIDEBAR UNTUK KARYAWAN
     ======================================================= --}}

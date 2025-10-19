@@ -30,6 +30,10 @@ class User extends Authenticatable
         'No_HP',
         'alamat',
         'foto',
+        'join_date',
+        'status',
+        'jabatan',
+        
     ];
 
     /**

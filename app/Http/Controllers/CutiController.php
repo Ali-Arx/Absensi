@@ -100,8 +100,7 @@ class CutiController extends Controller
         $query = Cuti::with('user', 'approver')
             ->whereMonth('tgl_pengajuan', $bulan)
             ->whereYear('tgl_pengajuan', $tahun)
-            ->where('approver_id', $user->id); // ✅ hanya tampilkan pengajuan untuk approver yang sedang login
-
+            ->where('approver_id', $user->id);
         // Optional filter status
         if ($status) {
             $query->where('status_pengajuan', $status);
@@ -110,46 +109,6 @@ class CutiController extends Controller
         $cutis = $query->paginate(10);
 
         return view('cuti.approval', compact('cutis', 'bulan', 'tahun'));
-    }
-
-
-
-    /**
-     * Approve cuti (POST)
-     */
-    public function approve(Request $request, Cuti $cuti)
-    {
-        
-
-
-        if (Auth::id() != $cuti->approver_id) {
-            abort(403, 'Anda tidak berhak approve.');
-        }
-
-        $cuti->update([
-            'status_pengajuan' => 'disetujui',
-            'tgl_status' => now(),
-        ]);
-
-        return back()->with('success', 'Cuti berhasil disetujui.');
-    }
-
-    /**
-     * Reject cuti (POST)
-     */
-    public function reject(Request $request, Cuti $cuti)
-    {
-        if (Auth::id() != $cuti->approver_id) {
-            abort(403, 'Anda tidak berhak menolak.');
-        }
-
-        $cuti->update([
-            'status_pengajuan' => 'ditolak',
-            'tgl_status' => now(),
-            'komentar_admin' => $request->komentar_admin ?? null,
-        ]);
-
-        return back()->with('success', 'Cuti berhasil ditolak.');
     }
 
     /**
@@ -184,13 +143,22 @@ class CutiController extends Controller
      */
     public function data(Request $request)
     {
-        $user = Auth::user();
-
         // Filter
         $status = $request->get('status', '');
         $bulan = $request->get('bulan', date('n'));
         $tahun = $request->get('tahun', date('Y'));
+        $department = $request->get('department', '');
 
+        // --- 2. AMBIL DAFTAR DEPARTEMEN UNIK ---
+        // Mengambil semua 'department' yang unik dari tabel user,
+        // mengabaikan yang null, dan mengurutkannya.
+        $departments = User::select('departement')
+            ->whereNotNull('departement')
+            ->distinct()
+            ->orderBy('departement', 'asc')
+            ->pluck('departement');
+
+        // Query Cuti (kode Anda sebelumnya sudah benar)
         $query = Cuti::with('user')
             ->whereMonth('tgl_pengajuan', $bulan)
             ->whereYear('tgl_pengajuan', $tahun);
@@ -199,9 +167,22 @@ class CutiController extends Controller
             $query->where('status_pengajuan', $status);
         }
 
+        if ($department) {
+            $query->whereHas('user', function ($userQuery) use ($department) {
+                $userQuery->where('departement', $department);
+            });
+        }
+
         $cutis = $query->paginate(10);
 
-        return view('cuti.data', compact('cutis', 'bulan', 'tahun'));
+        // --- 3. KIRIMKAN $departments KE VIEW ---
+        return view('cuti.data', compact(
+            'cutis',
+            'bulan',
+            'tahun',
+            'department',
+            'departments' // <-- Tambahkan ini
+        ));
     }
 
     public function show($id)
@@ -221,29 +202,23 @@ class CutiController extends Controller
             'tanda_tangan_approval' => 'required|string', // TTD wajib diisi
         ]);
 
-        // 2. Proses dan Simpan Tanda Tangan (Base64) sebagai File Gambar
-        $imageData = $validated['tanda_tangan_approval'];
+        $imageData = $validated['ttd_atasan_base64'];
 
-        // Pisahkan header dari data base64
-        // contoh: "data:image/png;base64,iVBORw0KGgo..."
-        @list($type, $imageData) = explode(';', $imageData);
-        @list(, $imageData) = explode(',', $imageData);
 
-        $imageData = base64_decode($imageData);
-        
-        // Buat nama file yang unik
-        $imageName = 'ttd-atasan-' . $cuti->id . '-' . time() . '.png';
-        $path = 'public/tanda_tangan_atasan/' . $imageName;
+        $imageName = 'paraf_' . time() . '.png';
 
-        // Simpan file ke storage
-        Storage::get($path, $imageData);
+        // Decode base64 dan simpan di storage/public/paraf/
+        $imagePath = 'tanda_tangan_atasan_cuti/' . $imageName;
+        $image = str_replace('data:image/png;base64,', '', $imageData);
+        $image = str_replace(' ', '+', $image);
+        Storage::disk('public')->put($imagePath, base64_decode($image));
 
         // 3. Update Data Cuti di Database
         $cuti->update([
             'status_pengajuan' => $validated['status_pengajuan'],
             'komentar' => $validated['komentar'],
-            'tanda_tangan_approval' => Storage::url($path), 
-            'tgl_disetujui' => now(), 
+            'tanda_tangan_approval' => $imagePath, // Simpan URL publik ke file
+            'tgl_disetujui' => now(), // Catat tanggal persetujuan
         ]);
 
         // 4. Kembalikan ke halaman sebelumnya dengan pesan sukses

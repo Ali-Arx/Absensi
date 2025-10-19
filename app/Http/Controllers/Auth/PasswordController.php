@@ -28,18 +28,13 @@ class PasswordController extends Controller
                 'password' => Hash::make($validated['password']),
             ]);
 
-            // Kirim pesan sukses
+            
             return back()->with('password_success', 'password-updated');
         } catch (ValidationException $e) {
-            // Tangkap exception jika validasi GAGAL
-
-            // Cek apakah error spesifiknya adalah 'current_password'
+            
             if ($e->validator->errors()->has('current_password')) {
-                // Jika ya, kembalikan dengan session 'password_error' kustom
                 return back()->with('password_error', 'Password lama yang Anda masukkan salah.');
             }
-
-            // Jika error validasi lainnya, biarkan Laravel menanganinya seperti biasa
             throw $e;
         }
     }

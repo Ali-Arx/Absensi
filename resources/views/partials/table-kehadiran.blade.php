@@ -5,9 +5,9 @@
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-bordered table-hover" width="100%" cellspacing="0">
-                <thead class="thead-light">
-                    <tr class="text-center">
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light text-center">
+                    <tr>
                         <th>No</th>
                         <th>Nama</th>
                         <th>Departemen</th>
@@ -18,35 +18,42 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="text-center">
-                        <td>1</td>
-                        <td>Rizki Pratama</td>
-                        <td>Produksi</td>
-                        <td>2025-10-08</td>
-                        <td>08:02</td>
-                        <td>17:01</td>
-                        <td><span class="badge badge-success">Hadir</span></td>
-                    </tr>
-                    <tr class="text-center">
-                        <td>2</td>
-                        <td>Soleha Amelia</td>
-                        <td>HRD</td>
-                        <td>2025-10-08</td>
-                        <td>08:10</td>
-                        <td>17:00</td>
-                        <td><span class="badge badge-warning">Terlambat</span></td>
-                    </tr>
-                    <tr class="text-center">
-                        <td>3</td>
-                        <td>Andi Saputra</td>
-                        <td>Maintenance</td>
-                        <td>2025-10-08</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td><span class="badge badge-danger">Tidak Hadir</span></td>
-                    </tr>
+                    @foreach ($data as $index => $item)
+                        <tr class="text-center">
+                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $item['name'] }}</td>
+                            <td>{{ $item['departement'] }}</td>
+                            <td>{{ $item['tanggal'] }}</td>
+                            <td>{{ $item['jam_masuk'] }}</td>
+                            <td>{{ $item['jam_pulang'] }}</td>
+                            <td>
+                                @switch($item['status'])
+                                    @case('Hadir')
+                                        <span class="badge bg-success">Hadir</span>
+                                    @break
+
+                                    @case('Hadir (Terlambat)')
+                                        <span class="badge bg-warning text-dark">Hadir (Terlambat)</span>
+                                    @break
+
+                                    @case('Cuti')
+                                        <span class="badge bg-info text-dark">Cuti</span>
+                                    @break
+
+                                    @case('Lembur')
+                                        <span class="badge bg-primary">Lembur</span>
+                                    @break
+
+                                    @default
+                                        <span class="badge bg-danger">Tidak Hadir</span>
+                                @endswitch
+
+                            </td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
+
         </div>
     </div>
 </div>

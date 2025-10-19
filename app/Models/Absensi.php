@@ -24,7 +24,6 @@ class Absensi extends Model
         'tipe_absen',
         'foto',
         'lokasi',
-       
     ];
 
     /**

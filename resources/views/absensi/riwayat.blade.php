@@ -18,10 +18,12 @@
                             <div class="col-md-3">
                                 <label for="bulan">Bulan</label>
                                 <select class="form-control" id="bulan" name="bulan">
-                                    @foreach (['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $b)
-                                        <option value="{{ $b }}"
-                                            {{ request('bulan', date('F')) == $b ? 'selected' : '' }}>
-                                            {{ $b }}
+                                    @foreach (['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $namaBulan)
+                                        {{-- value diubah menjadi $loop->iteration (1, 2, 3, ...) --}}
+                                        <option value="{{ $loop->iteration }}" {{-- Logika 'selected' diubah untuk membandingkan angka (date('n')) --}}
+                                            {{ request('bulan', date('n')) == $loop->iteration ? 'selected' : '' }}>
+
+                                            {{ $namaBulan }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -36,35 +38,23 @@
 
                             {{-- Status --}}
                             <div class="col-md-3">
-                                <label for="status">Status</label>
+                                <label for="status">Status</label>t
                                 <select class="form-control" id="status" name="status">
                                     <option value="">Semua Status</option>
-                                    <option value="hadir" {{ request('status') == 'hadir' ? 'selected' : '' }}>Hadir
+
+                                    <option value="Hadir" {{ request('status') == 'Hadir' ? 'selected' : '' }}>
+                                        Hadir
                                     </option>
-                                    <option value="terlambat" {{ request('status') == 'terlambat' ? 'selected' : '' }}>
-                                        Terlambat</option>
-                                    <option value="izin" {{ request('status') == 'izin' ? 'selected' : '' }}>Izin</option>
-                                    <option value="sakit" {{ request('status') == 'sakit' ? 'selected' : '' }}>Sakit
+                                    <option value="Hadir (Terlambat)"
+                                        {{ request('status') == 'Hadir (Terlambat)' ? 'selected' : '' }}>
+                                        Terlambat
                                     </option>
-                                    <option value="alpha" {{ request('status') == 'alpha' ? 'selected' : '' }}>Alpha
+                                    <option value="Tidak Hadir" {{ request('status') == 'Tidak Hadir' ? 'selected' : '' }}>
+                                        Tidak Hadir
                                     </option>
                                 </select>
                             </div>
 
-                            {{-- Search --}}
-                            <div class="col-md-4">
-                                <label for="search">Pencarian</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="search" name="search"
-                                        placeholder="Cari tanggal, waktu, atau keterangan..."
-                                        value="{{ request('search') }}">
-                                    <div class="input-group-append">
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-search"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         {{-- Tombol Aksi --}}
