@@ -25,25 +25,18 @@
                     <div class="row">
                         <div class="col-md-3">
                             <div class="form-group">
-                                <label for="date">Date</label>
-                                <input type="date" class="form-control" id="date" name="date"
-                                    value="{{ request('date') }}">
-                            </div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <div class="form-group">
                                 <label for="department">Department</label>
-                                <select class="form-control" id="department" name="department">
-                                    <option value="">Semua Department</option>
-                                    <option value="HR" {{ request('department') == 'HR' ? 'selected' : '' }}>HR</option>
-                                    <option value="IT" {{ request('department') == 'IT' ? 'selected' : '' }}>IT</option>
-                                    <option value="Finance" {{ request('department') == 'Finance' ? 'selected' : '' }}>
-                                        Finance</option>
-                                    <option value="Marketing" {{ request('department') == 'Marketing' ? 'selected' : '' }}>
-                                        Marketing</option>
-                                    <option value="Operations"
-                                        {{ request('department') == 'Operations' ? 'selected' : '' }}>Operations</option>
+                                <select name="department" id="department" class="form-control">
+                                    <option value="">Semua</option>
+
+                                    {{-- Ganti <option> statis Anda dengan loop ini --}}
+                                    @foreach ($departments as $dept)
+                                        <option value="{{ $dept }}"
+                                            {{ request('department') == $dept ? 'selected' : '' }}>
+                                            {{ $dept }}
+                                        </option>
+                                    @endforeach
+
                                 </select>
                             </div>
                         </div>
@@ -51,14 +44,19 @@
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label for="status">Status</label>
-                                <select class="form-control" id="status" name="status">
+                                <select name="status" class="form-control">
                                     <option value="">Semua Status</option>
-                                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
+                                    <option value="menunggu"
+                                        {{ request('status_pengajuan') == 'menunggu' ? 'selected' : '' }}>
+                                        Menunggu</option>
+                                    <option value="disetujui"
+                                        {{ request('status_pengajuan') == 'disetujui' ? 'selected' : '' }}>
+                                        Disetujui
                                     </option>
-                                    <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>
-                                        Approved</option>
-                                    <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>
-                                        Rejected</option>
+                                    <option value="ditolak"
+                                        {{ request('status_pengajuan') == 'ditolak' ? 'selected' : '' }}>
+                                        Ditolak
+                                    </option>
                                 </select>
                             </div>
                         </div>
@@ -66,29 +64,15 @@
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label for="month">Bulan</label>
-                                <select class="form-control" id="month" name="month">
-                                    <option value="">Semua Bulan</option>
-                                    <option value="Januari" {{ request('month') == 'Januari' ? 'selected' : '' }}>Januari
-                                    </option>
-                                    <option value="Februari" {{ request('month') == 'Februari' ? 'selected' : '' }}>
-                                        Februari</option>
-                                    <option value="Maret" {{ request('month') == 'Maret' ? 'selected' : '' }}>Maret
-                                    </option>
-                                    <option value="April" {{ request('month') == 'April' ? 'selected' : '' }}>April
-                                    </option>
-                                    <option value="Mei" {{ request('month') == 'Mei' ? 'selected' : '' }}>Mei</option>
-                                    <option value="Juni" {{ request('month') == 'Juni' ? 'selected' : '' }}>Juni</option>
-                                    <option value="Juli" {{ request('month') == 'Juli' ? 'selected' : '' }}>Juli</option>
-                                    <option value="Agustus" {{ request('month') == 'Agustus' ? 'selected' : '' }}>Agustus
-                                    </option>
-                                    <option value="September" {{ request('month') == 'September' ? 'selected' : '' }}>
-                                        September</option>
-                                    <option value="Oktober" {{ request('month') == 'Oktober' ? 'selected' : '' }}>Oktober
-                                    </option>
-                                    <option value="November" {{ request('month') == 'November' ? 'selected' : '' }}>
-                                        November</option>
-                                    <option value="Desember" {{ request('month') == 'Desember' ? 'selected' : '' }}>
-                                        Desember</option>
+                                <select class="form-control" id="bulan" name="bulan">
+                                    @foreach (['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $namaBulan)
+                                        {{-- value diubah menjadi $loop->iteration (1, 2, 3, ...) --}}
+                                        <option value="{{ $loop->iteration }}" {{-- Logika 'selected' diubah untuk membandingkan angka (date('n')) --}}
+                                            {{ request('bulan', date('n')) == $loop->iteration ? 'selected' : '' }}>
+
+                                            {{ $namaBulan }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -96,12 +80,13 @@
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label for="year">Tahun</label>
-                                <select class="form-control" id="year" name="year">
-                                    <option value="">Semua Tahun</option>
-                                    <option value="2023" {{ request('year') == '2023' ? 'selected' : '' }}>2023</option>
-                                    <option value="2024" {{ request('year') == '2024' ? 'selected' : '' }}>2024</option>
-                                    <option value="2025" {{ request('year') == '2025' ? 'selected' : '' }}>2025</option>
-                                    <option value="2026" {{ request('year') == '2026' ? 'selected' : '' }}>2026</option>
+                                <select name="tahun" class="form-control">
+                                    @for ($i = 2020; $i <= 2030; $i++)
+                                        <option value="{{ $i }}"
+                                            {{ request('tahun', date('Y')) == $i ? 'selected' : '' }}>
+                                            {{ $i }}
+                                        </option>
+                                    @endfor
                                 </select>
                             </div>
                         </div>
@@ -202,8 +187,10 @@
                                     <td>
                                         @if ($item->status_pengajuan == 'disetujui')
                                             <span class="badge badge-success">Disetujui</span>
-                                        @elseif($item->status == 'ditolak')
+                                        @elseif($item->status_pengajuan == 'ditolak')
                                             <span class="badge badge-danger">Ditolak</span>
+                                        @elseif($item->status_pengajuan == 'menunggu')
+                                            <span class="badge badge-warning">Menunggu</span>
                                         @else
                                             <span class="badge badge-warning">Pending</span>
                                         @endif
@@ -378,7 +365,7 @@
                         $('#modalDetail table').addClass('opacity-50');
                         $('#modalDetail .modal-body').prepend(
                             '<p class="text-center text-muted" id="loading-text">Loading...</p>'
-                            );
+                        );
                     },
                     success: function(response) {
                         $('#loading-text').remove();
@@ -420,6 +407,7 @@
                 });
 
             });
+
             function formatStatus(status) {
                 if (status === 'disetujui') return '<span class="badge bg-success">Disetujui</span>';
                 if (status === 'ditolak') return '<span class="badge bg-danger">Ditolak</span>';
@@ -427,4 +415,4 @@
             }
         });
     </script>
-    @endpush
+@endpush

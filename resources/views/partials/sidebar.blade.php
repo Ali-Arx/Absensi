@@ -2,11 +2,11 @@
 <nav class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
     <!-- Brand -->
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ route('dashboard') }}">
-        <div class="sidebar-brand-icon">
-            <i class="fas fa-building"></i>
+    <a class="sidebar-brand d-flex flex-column align-items-center justify-content-center py-3"
+        href="{{ route('dashboard') }}">
+        <div class="sidebar-brand-icon mb-1">
+            <img src="{{ asset('img/logo.png') }}" alt="Logo" class="img-fluid" style="width: 90px; height: auto;">
         </div>
-        <div class="sidebar-brand-text mx-3">Vortex HR</div>
     </a>
 
     <hr class="sidebar-divider my-0">
@@ -25,7 +25,6 @@
         SIDEBAR UNTUK HR
     ======================================================= --}}
     @if (Auth::user()->role === 'hr')
-
         {{-- ABSENSI --}}
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#absensiHR"
@@ -92,19 +91,10 @@
             </a>
         </li>
 
-        {{-- PENGATURAN --}}
-        <li class="nav-item">
-            <a class="nav-link" href="">
-                <i class="fas fa-fw fa-cogs"></i>
-                <span>Pengaturan</span>
-            </a>
-        </li>
-
-    {{-- ======================================================
+        {{-- ======================================================
         SIDEBAR UNTUK KARYAWAN
     ======================================================= --}}
     @elseif (Auth::user()->role === 'karyawan')
-
         {{-- ABSENSI --}}
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#absensiKaryawan">
@@ -155,11 +145,10 @@
             </a>
         </li>
 
-    {{-- ======================================================
+        {{-- ======================================================
         SIDEBAR UNTUK ATASAN
     ======================================================= --}}
     @elseif (Auth::user()->role === 'atasan')
-
         {{-- ABSENSI --}}
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#absensiAtasan">
@@ -212,11 +201,10 @@
             </a>
         </li>
 
-    {{-- ======================================================
+        {{-- ======================================================
         SIDEBAR UNTUK DIREKTUR
     ======================================================= --}}
     @elseif (Auth::user()->role === 'direktur')
-
         {{-- ABSENSI --}}
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#absensiDirektur">
@@ -268,7 +256,6 @@
                 <span>Profil</span>
             </a>
         </li>
-
     @endif
 
     <hr class="sidebar-divider d-none d-md-block">

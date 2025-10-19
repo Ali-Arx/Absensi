@@ -9,6 +9,7 @@ use App\Models\JamKerja;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class LemburController extends Controller
 {
@@ -36,7 +37,6 @@ class LemburController extends Controller
             } elseif ($user->departement === 'Engineering') {
                 $approvalUsers = User::whereIn('name', ['Rafly', 'Defri'])->get();
             }
-            
         } elseif ($user->role === 'hr') {
             $approvalUsers = User::where('role', 'direktur')->get();
         }
@@ -68,9 +68,6 @@ class LemburController extends Controller
         ]);
 
         $approverId = $request->approver_id;
-
-
-
 
         $mulai = Carbon::createFromFormat('H:i', $request->tgl_jam_mulai);
         $selesai = Carbon::createFromFormat('H:i', $request->tgl_jam_selesai);
@@ -117,19 +114,48 @@ class LemburController extends Controller
      */
     public function data(Request $request)
     {
-        $query = Lembur::query();
+// Filter
+        $status = $request->get('status', '');
+        $bulan = $request->get('bulan', date('n'));
+        $tahun = $request->get('tahun', date('Y'));
+        $department = $request->get('department', '');
+        $tanggal = $request->get('tanggal', );
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status_pengajuan);
+        $departments = User::select('departement')
+            ->whereNotNull('departement')
+            ->distinct()
+            ->orderBy('departement', 'asc')
+            ->pluck('departement');
+
+        // Query Cuti (kode Anda sebelumnya sudah benar)
+        $query = lembur::with('user')
+            ->whereMonth('tgl_pengajuan', $bulan)
+            ->whereYear('tgl_pengajuan', $tahun);
+
+        if ($status) {
+            $query->where('status_pengajuan', $status);
         }
 
-        if ($request->filled('departemen')) {
-            $query->where('departemen', $request->departemen);
+        if ($tanggal) {
+            $query->whereDate('tgl_pengajuan', $tanggal);
         }
 
-        $lemburs = $query->orderBy('tgl_pengajuan', 'desc')->get();
+        if ($department) {
+            $query->whereHas('user', function ($userQuery) use ($department) {
+                $userQuery->where('departement', $department);
+            });
+        }
 
-        return view('lembur.data', compact('lemburs'));
+        $lemburs = $query->paginate(10);
+
+        // --- 3. KIRIMKAN $departments KE VIEW ---
+        return view('lembur.data', compact(
+            'lemburs',
+            'bulan',
+            'tahun',
+            'department',
+            'departments' // <-- Tambahkan ini
+        ));
     }
 
     /**
@@ -157,36 +183,6 @@ class LemburController extends Controller
 
         return view('lembur.approval', compact('lemburs', 'bulan', 'tahun'));
     }
-
-    /**
-     * Menyetujui lembur
-     */
-    public function approve(Request $request, Lembur $lembur)
-    {
-        $lembur->update([
-            'status_pengajuan' => 'disetujui',
-            'tgl_status' => now(),
-        ]);
-
-        return back()->with('success', 'Lembur telah disetujui.');
-    }
-
-    /**
-     * Menolak lembur
-     */
-    public function reject(Request $request, Lembur $lembur)
-    {
-        $lembur->update([
-            'status_pengajuan' => 'ditolak',
-            'tgl_status' => now(),
-        ]);
-
-        return back()->with('error', 'Lembur telah ditolak.');
-    }
-
-    /**
-     * Menampilkan riwayat lembur user login
-     */
     public function riwayat(Request $request)
     {
         $user = Auth::user();
@@ -195,6 +191,8 @@ class LemburController extends Controller
         $status = $request->get('status', '');
         $bulan = $request->get('bulan', date('n'));
         $tahun = $request->get('tahun', date('Y'));
+        $tanggal = $request->get('tanggal',);
+
 
         $query = lembur::with('approver')
             ->where('user_id', $user->id)
@@ -202,8 +200,13 @@ class LemburController extends Controller
             ->whereYear('tgl_pengajuan', $tahun);
 
 
+
         if ($status) {
             $query->where('status_pengajuan', $status);
+        }
+
+        if ($tanggal) {
+            $query->whereDate('tgl_pengajuan', $tanggal);
         }
 
         $lemburs = $query->paginate(10);
@@ -216,15 +219,40 @@ class LemburController extends Controller
      */
     public function show($id)
     {
-        $lembur = Lembur::with(['user', 'approver'])->find($id);
+        // Tambahkan relasi 'approver' agar bisa akses nama atasan
+        $lembur = Lembur::with(['user', 'approver', 'jamKerja'])->findOrFail($id);
 
-        if (!$lembur) {
-            return response()->json(['success' => false]);
-        }
+        return response()->json($lembur);
+    }
 
-        return response()->json([
-            'success' => true,
-            'data' => $lembur
+    public function processApproval(Request $request, Lembur $Lembur)
+    {
+        // 1. Validasi Input dari Form
+        $validated = $request->validate([
+            'status_pengajuan' => ['required', Rule::in(['disetujui', 'ditolak'])],
+            'ttd_atasan_base64' => 'required|string', // TTD wajib diisi
         ]);
+
+        // 2. Proses dan Simpan Tanda Tangan (Base64) sebagai File Gambar
+        $imageData = $validated['ttd_atasan_base64'];
+
+
+        $imageName = 'paraf_' . time() . '.png';
+
+        // Decode base64 dan simpan di storage/public/paraf/
+        $imagePath = 'tanda_tangan_atasan/' . $imageName;
+        $image = str_replace('data:image/png;base64,', '', $imageData);
+        $image = str_replace(' ', '+', $image);
+        Storage::disk('public')->put($imagePath, base64_decode($image));
+
+        // 3. Update Data Lembur di Database
+        $Lembur->update([
+            'status_pengajuan' => $validated['status_pengajuan'],
+            'tanda_tangan_approver' => $imagePath, // Simpan URL publik ke file
+            'tgl_status' => now(), // Catat tanggal persetujuan
+        ]);
+
+        // 4. Kembalikan ke halaman sebelumnya dengan pesan sukses
+        return back()->with('success', 'Status pengajuan Lembur telah berhasil diperbarui.');
     }
 }

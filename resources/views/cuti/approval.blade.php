@@ -16,7 +16,7 @@
                     {{-- Filter Status Cuti --}}
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">Status Cuti</label>
-                        <select name="status" class="form-select">
+                        <select name="status" class="form-control">
                             <option value="">Semua Status</option>
                             <option value="menunggu" {{ request('status') == 'menunggu' ? 'selected' : '' }}>Menunggu
                             </option>
@@ -28,33 +28,23 @@
 
                     {{-- Filter Bulan --}}
                     <div class="col-md-3">
-                        <label class="form-label fw-semibold">Bulan</label>
-                        <select name="bulan" class="form-select">
-                            <option value="1" {{ request('bulan', date('n')) == 1 ? 'selected' : '' }}>Januari</option>
-                            <option value="2" {{ request('bulan', date('n')) == 2 ? 'selected' : '' }}>Februari
-                            </option>
-                            <option value="3" {{ request('bulan', date('n')) == 3 ? 'selected' : '' }}>Maret</option>
-                            <option value="4" {{ request('bulan', date('n')) == 4 ? 'selected' : '' }}>April</option>
-                            <option value="5" {{ request('bulan', date('n')) == 5 ? 'selected' : '' }}>Mei</option>
-                            <option value="6" {{ request('bulan', date('n')) == 6 ? 'selected' : '' }}>Juni</option>
-                            <option value="7" {{ request('bulan', date('n')) == 7 ? 'selected' : '' }}>Juli</option>
-                            <option value="8" {{ request('bulan', date('n')) == 8 ? 'selected' : '' }}>Agustus
-                            </option>
-                            <option value="9" {{ request('bulan', date('n')) == 9 ? 'selected' : '' }}>September
-                            </option>
-                            <option value="10" {{ request('bulan', date('n')) == 10 ? 'selected' : '' }}>Oktober
-                            </option>
-                            <option value="11" {{ request('bulan', date('n')) == 11 ? 'selected' : '' }}>November
-                            </option>
-                            <option value="12" {{ request('bulan', date('n')) == 12 ? 'selected' : '' }}>Desember
-                            </option>
+                        <label for="bulan">Bulan</label>
+                        <select class="form-control" id="bulan" name="bulan">
+                            @foreach (['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $namaBulan)
+                                {{-- value diubah menjadi $loop->iteration (1, 2, 3, ...) --}}
+                                <option value="{{ $loop->iteration }}" {{-- Logika 'selected' diubah untuk membandingkan angka (date('n')) --}}
+                                    {{ request('bulan', date('n')) == $loop->iteration ? 'selected' : '' }}>
+
+                                    {{ $namaBulan }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
 
                     {{-- Filter Tahun --}}
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">Tahun</label>
-                        <select name="tahun" class="form-select">
+                        <select name="tahun" class="form-control">
                             @for ($i = 2020; $i <= 2030; $i++)
                                 <option value="{{ $i }}"
                                     {{ request('tahun', date('Y')) == $i ? 'selected' : '' }}>
@@ -225,9 +215,6 @@
                         <h6 class="text-muted mt-4">Persetujuan Atasan</h6>
                         <hr>
 
-                        <!-- ============================================= -->
-                        <!-- KONTENER UNTUK FORM EDITABLE                  -->
-                        <!-- ============================================= -->
                         <div id="approval-form-container">
                             <div class="row mb-3">
                                 <div class="col-md-6">
@@ -251,12 +238,16 @@
                             <div class="mb-3">
                                 <label class="form-label">Tanda Tangan Atasan</label>
                                 <div>
-                                    <canvas id="ttd_atasan_canvas" class="border bg-light" width="300"
-                                        height="150"></canvas>
-                                    <br>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary mt-1"
-                                        id="clear_ttd_atasan">Hapus TTD</button>
+                                    <div class="border rounded bg-light p-3 d-flex justify-content-center">
+                                        <canvas id="ttd_atasan_canvas" width="400" height="200"
+                                            style="border:1px solid #ccc; background:white; border-radius:6px;"></canvas>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-secondary"
+                                        id="clear_ttd_atasan">Hapus</button>
                                     <input type="hidden" name="ttd_atasan_base64" id="ttd_atasan_base64">
+                                    <small class="text-muted d-block mt-1">Tanda tangan langsung di atas kotak, klik
+                                        "Hapus"
+                                        untuk mengulang.</small>
                                 </div>
                             </div>
                         </div>
@@ -348,8 +339,7 @@
                 document.getElementById('d_ttd').src = cuti.tanda_tangan ||
                     'https://placehold.co/200x125?text=TTD+Tidak+Ada';
 
-                // 2. LOGIKA UTAMA: Tentukan mode tampilan berdasarkan status
-                // (Ini adalah logika BARU untuk read-only)
+
                 if (cuti.status_pengajuan === 'menunggu') {
                     // MODE APPROVAL (EDITABLE)
                     approvalFormContainer.style.display = 'block';
@@ -380,8 +370,9 @@
 
                     document.getElementById('res_komentar').textContent = cuti.komentar ||
                         'Tidak ada komentar.';
-                    document.getElementById('res_ttd_atasan').src = cuti.tanda_tangan_atasan ||
-                        'https://placehold.co/200x125?text=TTD+Tidak+Ada';
+                    document.getElementById('res_ttd_atasan').src = cuti.tanda_tangan_approval ?
+               `/storage/${cuti.tanda_tangan_approval}` :
+                'https://placehold.co/200x125?text=TTD+Tidak+Ada';
                 }
             });
 

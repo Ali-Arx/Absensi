@@ -16,45 +16,36 @@
                     {{-- Filter Status Cuti --}}
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">Status Cuti</label>
-                        <select name="status" class="form-select">
+                        <select name="status" class="form-control">
                             <option value="">Semua Status</option>
-                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Menunggu</option>
-                            <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Disetujui
+                            <option value="menunggu" {{ request('status_pengajuan') == 'menunggu' ? 'selected' : '' }}>
+                                Menunggu</option>
+                            <option value="disetujui" {{ request('status_pengajuan') == 'disetujui' ? 'selected' : '' }}>
+                                Disetujui
                             </option>
-                            <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Ditolak
-                            </option>
-                        </select>
-                    </div>
-
-                    {{-- Filter Bulan --}}
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Bulan</label>
-                        <select name="bulan" class="form-select" id="bulanFilter">
-                            <option value="1" {{ request('bulan', date('n')) == 1 ? 'selected' : '' }}>Januari</option>
-                            <option value="2" {{ request('bulan', date('n')) == 2 ? 'selected' : '' }}>Februari
-                            </option>
-                            <option value="3" {{ request('bulan', date('n')) == 3 ? 'selected' : '' }}>Maret</option>
-                            <option value="4" {{ request('bulan', date('n')) == 4 ? 'selected' : '' }}>April</option>
-                            <option value="5" {{ request('bulan', date('n')) == 5 ? 'selected' : '' }}>Mei</option>
-                            <option value="6" {{ request('bulan', date('n')) == 6 ? 'selected' : '' }}>Juni</option>
-                            <option value="7" {{ request('bulan', date('n')) == 7 ? 'selected' : '' }}>Juli</option>
-                            <option value="8" {{ request('bulan', date('n')) == 8 ? 'selected' : '' }}>Agustus
-                            </option>
-                            <option value="9" {{ request('bulan', date('n')) == 9 ? 'selected' : '' }}>September
-                            </option>
-                            <option value="10" {{ request('bulan', date('n')) == 10 ? 'selected' : '' }}>Oktober
-                            </option>
-                            <option value="11" {{ request('bulan', date('n')) == 11 ? 'selected' : '' }}>November
-                            </option>
-                            <option value="12" {{ request('bulan', date('n')) == 12 ? 'selected' : '' }}>Desember
+                            <option value="ditolak" {{ request('status_pengajuan') == 'ditolak' ? 'selected' : '' }}>
+                                Ditolak
                             </option>
                         </select>
                     </div>
 
-                    {{-- Filter Tahun --}}
                     <div class="col-md-3">
-                        <label class="form-label fw-semibold">Tahun</label>
-                        <select name="tahun" class="form-select" id="tahunFilter">
+                        <label for="bulan" class="form-label small fw-bold">Bulan</label>
+                        <select class="form-control" id="bulan" name="bulan">
+                            @foreach (['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $namaBulan)
+                                {{-- value diubah menjadi $loop->iteration (1, 2, 3, ...) --}}
+                                <option value="{{ $loop->iteration }}" {{-- Logika 'selected' diubah untuk membandingkan angka (date('n')) --}}
+                                    {{ request('bulan', date('n')) == $loop->iteration ? 'selected' : '' }}>
+
+                                    {{ $namaBulan }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="tahun" class="form-label small fw-bold">Tahun</label>
+                        <select name="tahun" class="form-control">
                             @for ($i = 2020; $i <= 2030; $i++)
                                 <option value="{{ $i }}"
                                     {{ request('tahun', date('Y')) == $i ? 'selected' : '' }}>
@@ -147,137 +138,152 @@
     </div>
 
     <!-- Modal Lihat Detail Cuti -->
-<div class="modal fade" id="modalDetailCuti" tabindex="-1" aria-labelledby="detailCutiLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title fw-bold" id="detailCutiLabel">
-                    <i class="fas fa-file-alt me-2"></i> Detail Pengajuan Cuti
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <table class="table table-bordered mb-0">
-                    <tbody>
-                        <tr>
-                            <th width="30%">Nama Pegawai</th>
-                            <td id="detail-nama"></td>
-                        </tr>
-                        <tr>
-                            <th>No ID</th>
-                            <td id="detail-badge"></td>
-                        </tr>
-                        <tr>
-                            <th>Jenis Cuti</th>
-                            <td id="detail-jenis"></td>
-                        </tr>
-                        <tr>
-                            <th>Tanggal Mulai</th>
-                            <td id="detail-mulai"></td>
-                        </tr>
-                        <tr>
-                            <th>Tanggal Selesai</th>
-                            <td id="detail-selesai"></td>
-                        </tr>
-                        <tr>
-                            <th>Lama Cuti</th>
-                            <td id="detail-lama"></td>
-                        </tr>
-                        <tr>
-                            <th>Alasan</th>
-                            <td id="detail-alasan"></td>
-                        </tr>
-                        <tr>
-                            <th>Status</th>
-                            <td id="detail-status"></td>
-                        </tr>
-                        <tr>
-                            <th>Diajukan Pada</th>
-                            <td id="detail-dibuat"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="modal-footer d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCloseModal">
-                    <i class="fas fa-times"></i> Tutup
-                </button>
-                <div id="action-buttons"></div>
+    <div class="modal fade" id="modalDetailCuti" tabindex="-1" aria-labelledby="detailCutiLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="detailCutiLabel">
+                        <i class="fas fa-file-alt me-2"></i> Detail Pengajuan Cuti
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered mb-0">
+                        <tbody>
+                            <tr>
+                                <th width="30%">Nama Pegawai</th>
+                                <td id="detail-nama"></td>
+                            </tr>
+                            <tr>
+                                <th>No ID</th>
+                                <td id="detail-badge"></td>
+                            </tr>
+                            <tr>
+                                <th>Jenis Cuti</th>
+                                <td id="detail-jenis"></td>
+                            </tr>
+                            <tr>
+                                <th>Tanggal Mulai</th>
+                                <td id="detail-mulai"></td>
+                            </tr>
+                            <tr>
+                                <th>Tanggal Selesai</th>
+                                <td id="detail-selesai"></td>
+                            </tr>
+                            <tr>
+                                <th>Lama Cuti</th>
+                                <td id="detail-lama"></td>
+                            </tr>
+                            <tr>
+                                <th>Alasan</th>
+                                <td id="detail-alasan"></td>
+                            </tr>
+                            <tr>
+                                <th>Status</th>
+                                <td id="detail-status"></td>
+                            </tr>
+                            <tr>
+                                <th>Diajukan Pada</th>
+                                <td id="detail-dibuat"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCloseModal">
+                        <i class="fas fa-times"></i> Tutup
+                    </button>
+                    <div id="action-buttons"></div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 @endsection
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const modalElement = document.getElementById('modalDetailCuti');
-    const modal = new bootstrap.Modal(modalElement);
-    const buttons = document.querySelectorAll('.btn-lihat');
-    const closeButton = document.getElementById('btnCloseModal');
-    const actionDiv = document.getElementById('action-buttons');
+    document.addEventListener('DOMContentLoaded', function() {
+        const modalElement = document.getElementById('modalDetailCuti');
+        const modal = new bootstrap.Modal(modalElement);
+        const buttons = document.querySelectorAll('.btn-lihat');
+        const closeButton = document.getElementById('btnCloseModal');
+        const actionDiv = document.getElementById('action-buttons');
 
-    // ✅ Fungsi format tanggal 
-    function formatTanggal(dateString) {
-        if (!dateString) return '-';
-        const options = { day: '2-digit', month: 'long', year: 'numeric' };
-        return new Date(dateString).toLocaleDateString('id-ID', options);
-    }
+        // ✅ Fungsi format tanggal 
+        function formatTanggal(dateString) {
+            if (!dateString) return '-';
+            const options = {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+            };
+            return new Date(dateString).toLocaleDateString('id-ID', options);
+        }
 
-    // ✅ Fungsi hitung lama cuti (dalam hari)
-    function hitungLamaCuti(tglMulai, tglSelesai) {
-        if (!tglMulai || !tglSelesai) return '-';
-        const start = new Date(tglMulai);
-        const end = new Date(tglSelesai);
-        const selisihMs = end - start; // hasil dalam milidetik
-        const lamaHari = Math.ceil(selisihMs / (1000 * 60 * 60 * 24)) + 1; // +1 agar inklusif
-        return lamaHari > 0 ? lamaHari : 0; // pastikan tidak negatif
-    }
+        // ✅ Fungsi hitung lama cuti (dalam hari)
+        function hitungLamaCuti(tglMulai, tglSelesai) {
+            if (!tglMulai || !tglSelesai) return '-';
+            const start = new Date(tglMulai);
+            const end = new Date(tglSelesai);
+            const selisihMs = end - start; // hasil dalam milidetik
+            const lamaHari = Math.ceil(selisihMs / (1000 * 60 * 60 * 24)) + 1; // +1 agar inklusif
+            return lamaHari > 0 ? lamaHari : 0; // pastikan tidak negatif
+        }
 
-    // ✅ Tutup modal
-    function closeModal() {
-        modal.hide();
-    }
+        // ✅ Tutup modal
+        function closeModal() {
+            modal.hide();
+        }
 
-    // Klik tombol “Lihat”
-    buttons.forEach(btn => {
-        btn.addEventListener('click', function () {
-            const id = this.dataset.id;
+        // Klik tombol “Lihat”
+        buttons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
 
-            fetch(`/cuti/${id}`)
-                .then(response => response.json())
-                .then(data => {
-                    // Isi data ke modal
-                    document.getElementById('detail-nama').textContent = data.user?.name ?? '-';
-                    document.getElementById('detail-badge').textContent = data.user?.badge_number ?? '-';
-                    document.getElementById('detail-jenis').textContent = data.jenis_cuti ?? '-';
-                    document.getElementById('detail-mulai').textContent = formatTanggal(data.tgl_mulai);
-                    document.getElementById('detail-selesai').textContent = formatTanggal(data.tgl_selesai);
+                fetch(`/cuti/${id}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Isi data ke modal
+                        document.getElementById('detail-nama').textContent = data.user
+                            ?.name ?? '-';
+                        document.getElementById('detail-badge').textContent = data.user
+                            ?.badge_number ?? '-';
+                        document.getElementById('detail-jenis').textContent = data
+                            .jenis_cuti ?? '-';
+                        document.getElementById('detail-mulai').textContent = formatTanggal(
+                            data.tgl_mulai);
+                        document.getElementById('detail-selesai').textContent =
+                            formatTanggal(data.tgl_selesai);
 
-                    // ✅ Hitung lama cuti otomatis
-                    const lamaCuti = hitungLamaCuti(data.tgl_mulai, data.tgl_selesai);
-                    document.getElementById('detail-lama').textContent = `${lamaCuti} hari`;
+                        // ✅ Hitung lama cuti otomatis
+                        const lamaCuti = hitungLamaCuti(data.tgl_mulai, data.tgl_selesai);
+                        document.getElementById('detail-lama').textContent =
+                            `${lamaCuti} hari`;
 
-                    document.getElementById('detail-alasan').textContent = data.alasan ?? '-';
-                    document.getElementById('detail-dibuat').textContent = formatTanggal(data.created_at);
+                        document.getElementById('detail-alasan').textContent = data
+                            .alasan ?? '-';
+                        document.getElementById('detail-dibuat').textContent =
+                            formatTanggal(data.created_at);
 
-                    // Status badge
-                    let statusBadge = '';
-                    switch (data.status) {
-                        case 'disetujui':
-                            statusBadge = '<span class="badge bg-success">Disetujui</span>';
-                            break;
-                        case 'ditolak':
-                            statusBadge = '<span class="badge bg-danger">Ditolak</span>';
-                            break;
-                        default:
-                            statusBadge = '<span class="badge bg-warning text-dark">Menunggu</span>';
-                    }
-                    document.getElementById('detail-status').innerHTML = statusBadge;
+                        // Status badge
+                        let statusBadge = '';
+                        switch (data.status) {
+                            case 'disetujui':
+                                statusBadge =
+                                    '<span class="badge bg-success">Disetujui</span>';
+                                break;
+                            case 'ditolak':
+                                statusBadge =
+                                    '<span class="badge bg-danger">Ditolak</span>';
+                                break;
+                            default:
+                                statusBadge =
+                                    '<span class="badge bg-warning text-dark">Menunggu</span>';
+                        }
+                        document.getElementById('detail-status').innerHTML = statusBadge;
 
-                    // Tombol aksi (hanya jika status masih menunggu)
-                    if (data.status === 'menunggu') {
-                        actionDiv.innerHTML = `
+                        // Tombol aksi (hanya jika status masih menunggu)
+                        if (data.status === 'menunggu') {
+                            actionDiv.innerHTML = `
                             <form method="POST" action="/cuti/${data.id}/approve" class="d-inline">
                                 @csrf
                                 <button type="submit" class="btn btn-success">
@@ -291,22 +297,21 @@ document.addEventListener('DOMContentLoaded', function () {
                                 </button>
                             </form>
                         `;
-                    } else {
-                        actionDiv.innerHTML = '';
-                    }
+                        } else {
+                            actionDiv.innerHTML = '';
+                        }
 
-                    // ✅ Tampilkan modal
-                    modal.show();
-                })
-                .catch(error => {
-                    console.error('❌ Gagal mengambil data cuti:', error);
-                    alert('Terjadi kesalahan saat mengambil data.');
-                });
+                        // ✅ Tampilkan modal
+                        modal.show();
+                    })
+                    .catch(error => {
+                        console.error('❌ Gagal mengambil data cuti:', error);
+                        alert('Terjadi kesalahan saat mengambil data.');
+                    });
+            });
         });
+
+        // ✅ Tutup modal ketika tombol “Tutup” diklik
+        closeButton.addEventListener('click', closeModal);
     });
-
-    // ✅ Tutup modal ketika tombol “Tutup” diklik
-    closeButton.addEventListener('click', closeModal);
-});
 </script>
-
