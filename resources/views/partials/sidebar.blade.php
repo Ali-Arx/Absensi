@@ -1,5 +1,5 @@
 {{-- resources/views/partials/sidebar.blade.php --}}
-<nav class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+<nav class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar" >
 
     <!-- Brand -->
     <a class="sidebar-brand d-flex flex-column align-items-center justify-content-center py-3"
@@ -8,6 +8,7 @@
             <img src="{{ asset('img/logo.png') }}" alt="Logo" class="img-fluid" style="width: 90px; height: auto;">
         </div>
     </a>
+
 
     <hr class="sidebar-divider my-0">
 

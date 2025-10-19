@@ -180,6 +180,7 @@ class AbsensiController extends Controller
         }
 
 
+
         // Group berdasarkan tanggal
         $grouped = $data->groupBy(function ($item) {
             return \Carbon\Carbon::parse($item->tanggal_waktu)->format('Y-m-d');
