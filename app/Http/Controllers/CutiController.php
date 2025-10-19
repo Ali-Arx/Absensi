@@ -199,7 +199,7 @@ class CutiController extends Controller
         $validated = $request->validate([
             'status_pengajuan' => ['required', Rule::in(['disetujui', 'ditolak'])],
             'komentar' => 'nullable|string|max:255',
-            'ttd_atasan_base64' => 'required|string', // TTD wajib diisi
+            'tanda_tangan_approval' => 'required|string', // TTD wajib diisi
         ]);
 
         $imageData = $validated['ttd_atasan_base64'];

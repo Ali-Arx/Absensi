@@ -121,6 +121,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/pengguna/{user}', [PenggunaController::class, 'destroy'])->name('pengguna.delete');
         Route::post('/pengguna/import', [PenggunaController::class, 'import'])->name('pengguna.data.import');
     });
+
 });
 
 // route default Laravel Breeze / Fortify

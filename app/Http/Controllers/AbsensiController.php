@@ -180,6 +180,7 @@ class AbsensiController extends Controller
         }
 
 
+
         // Group berdasarkan tanggal
         $grouped = $data->groupBy(function ($item) {
             return \Carbon\Carbon::parse($item->tanggal_waktu)->format('Y-m-d');
@@ -448,7 +449,6 @@ class AbsensiController extends Controller
             Log::error('Gagal impor laporan: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan sistem saat impor: ' . $e->getMessage());
         }
-    }
 
 
 
