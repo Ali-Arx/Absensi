@@ -8,6 +8,21 @@
         <!-- Judul Halaman -->
         <h4 class="mb-4 text-gray-800 fw-bold">Approval Cuti</h4>
 
+        {{-- Notifikasi --}}
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+
         <!-- Filter -->
         <div class="card shadow-sm mb-4">
             <div class="card-body">
@@ -153,7 +168,7 @@
 
                 <form id="formApprovalCuti" action="" method="POST">
                     @csrf
-                    @method('POST')
+                    @method('PUT')
                     <input type="hidden" id="app_cuti_id" name="cuti_id">
 
                     <div class="modal-body">
@@ -249,9 +264,7 @@
                                         "Hapus"
                                         untuk mengulang.</small>
                                 </div>
-                                <input type="hidden" name="tanda_tangan_approval" id="tanda_tangan_approval">
-                                <small class="text-muted d-block mt-1">Tanda tangan langsung di atas kotak, klik "Hapus"
-                                    untuk mengulang.</small>
+
                             </div>
                         </div>
 
@@ -265,7 +278,7 @@
                                     <p class="mb-2"><strong>Komentar Atasan:</strong></p>
                                     <p id="res_komentar" class="text-muted fst-italic ps-3">Tidak ada komentar.</p>
                                     <p class="mb-2"><strong>Tanda Tangan Atasan:</strong></p>
-                                    <img id="tanda_tangan_approval" src="" alt="tanda tangan approval"
+                                    <img id="res_ttd_atasan" src="" alt="tanda tangan approval"
                                         class="img-thumbnail bg-light"
                                         style="width: 200px; height: 125px; object-fit: contain;">
                                 </div>
@@ -275,10 +288,9 @@
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                        <!-- Submit -->
-                    <div class="text-end">
-                        <button type="submit" class="btn btn-primary px-4">Simpan</button>
-                    </div>
+                        <!-- Tombol Simpan ini akan kita kontrol -->
+                        <button type="submit" class="btn btn-primary" id="simpan-btn"
+                            form="formApprovalCuti">Simpan</button>
                     </div>
                 </form>
 
@@ -292,120 +304,47 @@
 
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 @push('scripts')
-
     <script>
-        // TTD Approval
-        document.addEventListener("DOMContentLoaded", function() {
-            const canvas = document.getElementById('signature-pad');
-            const ctx = canvas.getContext('2d');
-            const clearBtn = document.getElementById('clear-signature');
-            const input = document.getElementById('tanda_tangan_approval');
-            let drawing = false;
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- SETUP ELEMENT-ELEMENT MODAL ---
+            const detailModal = document.getElementById('detailModal');
+            const canvas = document.getElementById('ttd_atasan_canvas');
+            const clearButton = document.getElementById('clear_ttd_atasan');
+            const hiddenInput = document.getElementById('ttd_atasan_base64');
 
-            // Background putih
-            ctx.fillStyle = "#fff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Elemen-elemen untuk logika read-only
+            const approvalFormContainer = document.getElementById('approval-form-container');
+            const approvalResultContainer = document.getElementById('approval-result-container');
+            const saveButton = document.getElementById('simpan-btn');
+            let signaturePad;
 
-            canvas.addEventListener('mousedown', (e) => {
-                drawing = true;
-                ctx.beginPath();
-                ctx.moveTo(e.offsetX, e.offsetY);
-            });
-            canvas.addEventListener('mousemove', (e) => {
-                if (!drawing) return;
-                ctx.lineTo(e.offsetX, e.offsetY);
-                ctx.strokeStyle = "#000";
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            });
-            canvas.addEventListener('mouseup', () => {
-                drawing = false;
-                input.value = canvas.toDataURL('image/png');
-            });
-            clearBtn.addEventListener('click', () => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "#fff";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                input.value = "";
-            });
-        });
 
-        // Elemen-elemen untuk logika read-only
-        const approvalFormContainer = document.getElementById('approval-form-container');
-        const approvalResultContainer = document.getElementById('approval-result-container');
-        const saveButton = document.getElementById('simpan-btn');
-        let signaturePad;
 
-        function resizeCanvas() {
-            // Cek dulu apakah canvas terlihat, baru resize
-            if (!canvas.offsetParent) return;
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            canvas.getContext("2d").scale(ratio, ratio);
-            if (signaturePad) {
-                signaturePad.clear();
-            }
-        }
+            // --- EVENT LISTENER SAAT MODAL AKAN DITAMPILKAN ---
+            detailModal.addEventListener('show.bs.modal', event => {
+                const button = event.relatedTarget;
+                const cuti = JSON.parse(button.getAttribute('data-cuti'));
+                const form = document.getElementById('formApprovalCuti');
 
-        // --- EVENT LISTENER SAAT MODAL AKAN DITAMPILKAN ---
-        detailModal.addEventListener('show.bs.modal', event => {
-            const button = event.relatedTarget;
-            const cuti = JSON.parse(button.getAttribute('data-cuti'));
-            const form = document.getElementById('formApprovalCuti');
-            // 1. ISI DATA DETAIL PENGAJUAN
-            document.getElementById('d_badge').value = cuti.user.badge_number || '-';
-            document.getElementById('d_nama').value = cuti.user.name;
-            document.getElementById('d_dept').value = cuti.user.departement || '-';
-            document.getElementById('detail-atasan').value = cuti.approver?.name ?? '-';
-            document.getElementById('d_jenis').value = cuti.jenis_cuti;
-            document.getElementById('d_pengajuan').value = new Date(cuti.tgl_pengajuan)
-                .toLocaleDateString('id-ID');
-            document.getElementById('d_mulai').value = new Date(cuti.tgl_mulai).toLocaleDateString(
-                'id-ID');
-            document.getElementById('d_selesai').value = new Date(cuti.tgl_selesai).toLocaleDateString(
-                'id-ID');
-            document.getElementById('d_alasan').value = cuti.alasan;
-            document.getElementById('d_ttd').src = cuti.tanda_tangan ||
-                'https://placehold.co/200x125?text=TTD+Tidak+Ada';
+                // 1. Mengisi data detail pengajuan (selalu dilakukan)
+                // (Ini adalah kode dari skrip yang Anda kirim, sudah ada di sini)
+                document.getElementById('d_badge').value = cuti.user.badge_number || '-';
+                document.getElementById('d_nama').value = cuti.user.name;
+                document.getElementById('d_dept').value = cuti.user.departement || '-';
+                document.getElementById('detail-atasan').value = cuti.approver?.name ?? '-';
+                document.getElementById('d_jenis').value = cuti.jenis_cuti ?? '-';
 
-            // 2. APPROVAL (EDITABLE) ATAU DETAIL (READ-ONLY)
-            if (cuti.status_pengajuan === 'menunggu') {
-                // MODE APPROVAL (EDITABLE)
-                approvalFormContainer.style.display = 'block';
-                approvalResultContainer.style.display = 'none';
-                saveButton.style.display = 'block';
+                document.getElementById('d_pengajuan').value = new Date(cuti.tgl_pengajuan)
+                    .toLocaleDateString('id-ID');
+                document.getElementById('d_mulai').value = cuti.tgl_mulai || '-';
+                document.getElementById('d_selesai').value = cuti.tgl_selesai || '-';
+                document.getElementById('d_alasan').value = cuti.alasan;
+                document.getElementById('d_ttd').src = cuti.tanda_tangan ||
 
-                // Reset form approval
-                form.action = `/cuti/${cuti.id}/process-approval`; // Ganti dengan URL route Anda
-                document.getElementById('app_cuti_id').value = cuti.id;
-                document.getElementById('d_komentar').value = '';
-                document.querySelectorAll('input[name="status_pengajuan"]').forEach(radio => radio
-                    .checked = false);
-
-            } else {
-                // MODE DETAIL (READ-ONLY)
-                approvalFormContainer.style.display = 'none';
-                approvalResultContainer.style.display = 'block';
-                saveButton.style.display = 'none';
-
-                // Tampilkan hasil approval
-                let statusText = cuti.status_pengajuan.charAt(0).toUpperCase() + cuti.status_pengajuan
-                    .slice(1);
-                let statusClass = 'badge bg-secondary';
-                if (cuti.status_pengajuan === 'disetujui') statusClass = 'badge bg-success';
-                if (cuti.status_pengajuan === 'ditolak') statusClass = 'badge bg-danger';
-                document.getElementById('res_status_badge').innerHTML =
-                    `<span class="${statusClass}">${statusText}</span>`;
-
-                document.getElementById('res_komentar').textContent = cuti.komentar ||
-                    'Tidak ada komentar.';
-                document.getElementById('tanda_tangan_approval').src = cuti.tanda_tangan_approval ||
                     'https://placehold.co/200x125?text=TTD+Tidak+Ada';
-            }
-        });
 
-
+                // 2. LOGIKA UTAMA: Tentukan mode tampilan berdasarkan status
+                // (Ini adalah logika BARU untuk read-only)
                 if (cuti.status_pengajuan === 'menunggu') {
                     // MODE APPROVAL (EDITABLE)
                     approvalFormContainer.style.display = 'block';
@@ -415,7 +354,6 @@
                     // Reset form approval
                     form.action = `/cuti/${cuti.id}/process-approval`; // Ganti dengan URL route Anda
                     document.getElementById('app_cuti_id').value = cuti.id;
-                    document.getElementById('d_komentar').value = '';
                     document.querySelectorAll('input[name="status_pengajuan"]').forEach(radio => radio
                         .checked = false);
 
@@ -425,40 +363,69 @@
                     approvalResultContainer.style.display = 'block';
                     saveButton.style.display = 'none';
 
+                    console.log("Komentar:", cuti.komentar);
                     // Tampilkan hasil approval
-                    let statusText = cuti.status_pengajuan.charAt(0).toUpperCase() + cuti.status_pengajuan
+                    let statusText = cuti.status_pengajuan.charAt(0).toUpperCase() + cuti
+                        .status_pengajuan
                         .slice(1);
                     let statusClass = 'badge bg-secondary';
                     if (cuti.status_pengajuan === 'disetujui') statusClass = 'badge bg-success';
                     if (cuti.status_pengajuan === 'ditolak') statusClass = 'badge bg-danger';
                     document.getElementById('res_status_badge').innerHTML =
                         `<span class="${statusClass}">${statusText}</span>`;
-
                     document.getElementById('res_komentar').textContent = cuti.komentar ||
                         'Tidak ada komentar.';
-                    document.getElementById('res_ttd_atasan').src = cuti.tanda_tangan_approval ?
-               `/storage/${cuti.tanda_tangan_approval}` :
-                'https://placehold.co/200x125?text=TTD+Tidak+Ada';
+                    const ttdImg = document.getElementById(
+                    'res_ttd_atasan'); // Use the corrected ID from previous answer
+                    if (cuti.tanda_tangan_approval) {
+                        // Prepend /storage/ to the path
+                        ttdImg.src = `/storage/${cuti.tanda_tangan_approval}`;
+                    } else {
+                        // Fallback placeholder
+                        ttdImg.src = 'https://placehold.co/200x125?text=TTD+Tidak+Ada';
+                    }
                 }
             });
 
-        clearButton.addEventListener('click', () => {
-            if (signaturePad) {
-                signaturePad.clear();
-                hiddenInput.value = '';
-            }
+            detailModal.addEventListener('shown.bs.modal', () => {
+                if (approvalFormContainer.style.display === 'block') {
+                    // Inisialisasi signaturePad HANYA jika belum ada
+                    if (!signaturePad) {
+                        signaturePad = new SignaturePad(canvas, {
+                            backgroundColor: 'rgb(255, 255, 255)', // Set ke putih
+                            penColor: 'rgb(0, 0, 0)'
+                        });
+
+                        // Tambahkan listener HANYA saat pertama kali dibuat
+                        signaturePad.addEventListener("endStroke", () => {
+                            if (!signaturePad.isEmpty()) {
+                                hiddenInput.value = signaturePad.toDataURL('image/png');
+                                // UNTUK DEBUGGING:
+                                // console.log("Signature data set:", hiddenInput.value.substring(0, 50) + "...");
+                            }
+                        });
+                    }
+                }
+            });
+
+            clearButton.addEventListener('click', () => {
+                if (signaturePad) {
+                    signaturePad.clear();
+                    hiddenInput.value = '';
+                }
+            });
+
+            detailModal.addEventListener('hidden.bs.modal', () => {
+                if (signaturePad) {
+                    signaturePad.clear();
+                    hiddenInput.value = '';
+                    // Hancurkan instance untuk mencegah memory leak
+                    signaturePad.off();
+                    signaturePad = null;
+                }
+            });
+
+            window.addEventListener("resize", resizeCanvas);
         });
-
-        detailModal.addEventListener('hidden.bs.modal', () => {
-            if (signaturePad) {
-                signaturePad.clear();
-                hiddenInput.value = '';
-                signaturePad.off();
-                signaturePad = null;
-            }
-        });
-
-        window.addEventListener("resize", resizeCanvas);
-
     </script>
 @endpush

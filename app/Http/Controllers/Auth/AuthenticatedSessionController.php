@@ -13,7 +13,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Tampilkan halaman login
      */
-    public function create(): View
+    public function create()
     {
         // Kalau user sudah login, langsung redirect ke dashboard sesuai role
         if (Auth::check()) {
@@ -43,6 +43,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = Auth::user();
+
 
         // Redirect sesuai role
         return $this->redirectToDashboard($user);

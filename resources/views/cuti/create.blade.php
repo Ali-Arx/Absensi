@@ -53,7 +53,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Departemen</label>
-                            <input type="text" class="form-control text-uppercase" value="{{ Auth::user()->role }}"
+                            <input type="text" class="form-control text-uppercase" value="{{ Auth::user()->departement }}"
                                 readonly>
                         </div>
                         <div class="col-md-3">

@@ -78,59 +78,47 @@ class AbsensiImport implements
                 }
                 // 6. Logika Impor (Mengabaikan 'Keterangan')
 
-                // --- (MULAI) PERBAIKAN UNTUK WAKTU MASUK ---
                 if (!empty($waktuMasuk) && $waktuMasuk !== '-') {
-                    $tanggalWaktuMasuk = $tanggal->copy()->setTimeFromTimeString($waktuMasuk);
-
-                    // Data untuk di-update atau di-create
-                    $data = [
-                        'tanggal_waktu' => $tanggalWaktuMasuk,
-                        'jam_kerja_id' => $jamKerjaId,
-                        'lokasi' => $lokasi_impor,
-                        'foto' => $foto_impor,
-                    ];
-
-                    // Cari rekaman yang ada menggunakan whereDate()
+                    // Cek dulu apakah data sudah ada
                     $existingAbsen = Absensi::where('user_id', $user->id)
                         ->where('tipe_absen', 'masuk')
-                        // INI ADALAH FUNGSI YANG BENAR:
                         ->whereDate('tanggal_waktu', $tanggalString)
                         ->first();
 
-                    if ($existingAbsen) {
-                        $existingAbsen->update($data); // Update jika ada
-                    } else {
-                        // Create jika tidak ada
-                        $data['user_id'] = $user->id;
-                        $data['tipe_absen'] = 'masuk';
+                    // HANYA CREATE JIKA BELUM ADA
+                    if (!$existingAbsen) {
+                        $data = [
+                            'tanggal_waktu' => $tanggal->copy()->setTimeFromTimeString($waktuMasuk),
+                            'jam_kerja_id' => $jamKerjaId,
+                            'lokasi' => $lokasi_impor,
+                            'foto' => $foto_impor,
+                            'user_id' => $user->id,
+                            'tipe_absen' => 'masuk'
+                        ];
                         Absensi::create($data);
                     }
+                    // Jika $existingAbsen ada, JANGAN LAKUKAN APA-APA (SKIP)
                 }
-                // --- (SELESAI) PERBAIKAN UNTUK WAKTU MASUK ---
-
-                // --- (MULAI) PERBAIKAN UNTUK WAKTU PULANG ---
                 if (!empty($waktuPulang) && $waktuPulang !== '-') {
-                    $tanggalWaktuPulang = $tanggal->copy()->setTimeFromTimeString($waktuPulang);
-
-                    $data = [
-                        'tanggal_waktu' => $tanggalWaktuPulang,
-                        'jam_kerja_id' => $jamKerjaId,
-                        'lokasi' => $lokasi_impor,
-                        'foto' => $foto_impor,
-                    ];
-
+                    // Cek dulu apakah data sudah ada
                     $existingAbsen = Absensi::where('user_id', $user->id)
                         ->where('tipe_absen', 'pulang')
-                        ->whereDate('tanggal_waktu', $tanggalString) // Gunakan whereDate()
+                        ->whereDate('tanggal_waktu', $tanggalString)
                         ->first();
 
-                    if ($existingAbsen) {
-                        $existingAbsen->update($data);
-                    } else {
-                        $data['user_id'] = $user->id;
-                        $data['tipe_absen'] = 'pulang';
+                    // HANYA CREATE JIKA BELUM ADA
+                    if (!$existingAbsen) {
+                        $data = [
+                            'tanggal_waktu' => $tanggal->copy()->setTimeFromTimeString($waktuPulang),
+                            'jam_kerja_id' => $jamKerjaId,
+                            'lokasi' => $lokasi_impor,
+                            'foto' => $foto_impor,
+                            'user_id' => $user->id,
+                            'tipe_absen' => 'pulang'
+                        ];
                         Absensi::create($data);
                     }
+                    // Jika $existingAbsen ada, JANGAN LAKUKAN APA-APA (SKIP)
                 }
                 // --- (SELESAI) PERBAIKAN UNTUK WAKTU PULANG ---
             }
