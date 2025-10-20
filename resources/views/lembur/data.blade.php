@@ -9,12 +9,37 @@
             <h1 class="h3 mb-0 text-gray-800">Data Lembur</h1>
         </div>
 
+        {{-- Menampilkan Pesan Sukses (dari 'with('success', ...)') --}}
         @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <i class="fas fa-check-circle me-1"></i>
+                {!! session('success') !!}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        {{-- Menampilkan Pesan Error (dari 'with('error', ...)') --}}
+        {{-- Ini adalah pesan yang akan menangkap error dari controller Anda --}}
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                <strong>Gagal!</strong><br>
+                {!! session('error') !!} {{-- Kita pakai {!! !!} agar <br> dari error validasi bisa tampil --}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        {{-- Menampilkan Error Validasi Bawaan Laravel (misal: 'file' => 'required|mimes:...') --}}
+        @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                <strong>Error Validasi!</strong>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 
@@ -25,25 +50,18 @@
                     <div class="row">
                         <div class="col-md-3">
                             <div class="form-group">
-                                <label for="date">Date</label>
-                                <input type="date" class="form-control" id="date" name="date"
-                                    value="{{ request('date') }}">
-                            </div>
-                        </div>
-
-                        <div class="col-md-3">
-                            <div class="form-group">
                                 <label for="department">Department</label>
-                                <select class="form-control" id="department" name="department">
-                                    <option value="">Semua Department</option>
-                                    <option value="HR" {{ request('department') == 'HR' ? 'selected' : '' }}>HR</option>
-                                    <option value="IT" {{ request('department') == 'IT' ? 'selected' : '' }}>IT</option>
-                                    <option value="Finance" {{ request('department') == 'Finance' ? 'selected' : '' }}>
-                                        Finance</option>
-                                    <option value="Marketing" {{ request('department') == 'Marketing' ? 'selected' : '' }}>
-                                        Marketing</option>
-                                    <option value="Operations"
-                                        {{ request('department') == 'Operations' ? 'selected' : '' }}>Operations</option>
+                                <select name="department" id="department" class="form-control">
+                                    <option value="">Semua</option>
+
+                                    {{-- Ganti <option> statis Anda dengan loop ini --}}
+                                    @foreach ($departments as $dept)
+                                        <option value="{{ $dept }}"
+                                            {{ request('department') == $dept ? 'selected' : '' }}>
+                                            {{ $dept }}
+                                        </option>
+                                    @endforeach
+
                                 </select>
                             </div>
                         </div>
@@ -51,14 +69,19 @@
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label for="status">Status</label>
-                                <select class="form-control" id="status" name="status">
+                                <select name="status" class="form-control">
                                     <option value="">Semua Status</option>
-                                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
+                                    <option value="menunggu"
+                                        {{ request('status_pengajuan') == 'menunggu' ? 'selected' : '' }}>
+                                        Menunggu</option>
+                                    <option value="disetujui"
+                                        {{ request('status_pengajuan') == 'disetujui' ? 'selected' : '' }}>
+                                        Disetujui
                                     </option>
-                                    <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>
-                                        Approved</option>
-                                    <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>
-                                        Rejected</option>
+                                    <option value="ditolak"
+                                        {{ request('status_pengajuan') == 'ditolak' ? 'selected' : '' }}>
+                                        Ditolak
+                                    </option>
                                 </select>
                             </div>
                         </div>
@@ -66,29 +89,15 @@
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label for="month">Bulan</label>
-                                <select class="form-control" id="month" name="month">
-                                    <option value="">Semua Bulan</option>
-                                    <option value="Januari" {{ request('month') == 'Januari' ? 'selected' : '' }}>Januari
-                                    </option>
-                                    <option value="Februari" {{ request('month') == 'Februari' ? 'selected' : '' }}>
-                                        Februari</option>
-                                    <option value="Maret" {{ request('month') == 'Maret' ? 'selected' : '' }}>Maret
-                                    </option>
-                                    <option value="April" {{ request('month') == 'April' ? 'selected' : '' }}>April
-                                    </option>
-                                    <option value="Mei" {{ request('month') == 'Mei' ? 'selected' : '' }}>Mei</option>
-                                    <option value="Juni" {{ request('month') == 'Juni' ? 'selected' : '' }}>Juni</option>
-                                    <option value="Juli" {{ request('month') == 'Juli' ? 'selected' : '' }}>Juli</option>
-                                    <option value="Agustus" {{ request('month') == 'Agustus' ? 'selected' : '' }}>Agustus
-                                    </option>
-                                    <option value="September" {{ request('month') == 'September' ? 'selected' : '' }}>
-                                        September</option>
-                                    <option value="Oktober" {{ request('month') == 'Oktober' ? 'selected' : '' }}>Oktober
-                                    </option>
-                                    <option value="November" {{ request('month') == 'November' ? 'selected' : '' }}>
-                                        November</option>
-                                    <option value="Desember" {{ request('month') == 'Desember' ? 'selected' : '' }}>
-                                        Desember</option>
+                                <select class="form-control" id="bulan" name="bulan">
+                                    @foreach (['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $namaBulan)
+                                        {{-- value diubah menjadi $loop->iteration (1, 2, 3, ...) --}}
+                                        <option value="{{ $loop->iteration }}" {{-- Logika 'selected' diubah untuk membandingkan angka (date('n')) --}}
+                                            {{ request('bulan', date('n')) == $loop->iteration ? 'selected' : '' }}>
+
+                                            {{ $namaBulan }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -96,12 +105,13 @@
                         <div class="col-md-2">
                             <div class="form-group">
                                 <label for="year">Tahun</label>
-                                <select class="form-control" id="year" name="year">
-                                    <option value="">Semua Tahun</option>
-                                    <option value="2023" {{ request('year') == '2023' ? 'selected' : '' }}>2023</option>
-                                    <option value="2024" {{ request('year') == '2024' ? 'selected' : '' }}>2024</option>
-                                    <option value="2025" {{ request('year') == '2025' ? 'selected' : '' }}>2025</option>
-                                    <option value="2026" {{ request('year') == '2026' ? 'selected' : '' }}>2026</option>
+                                <select name="tahun" class="form-control">
+                                    @for ($i = 2020; $i <= 2030; $i++)
+                                        <option value="{{ $i }}"
+                                            {{ request('tahun', date('Y')) == $i ? 'selected' : '' }}>
+                                            {{ $i }}
+                                        </option>
+                                    @endfor
                                 </select>
                             </div>
                         </div>
@@ -126,10 +136,11 @@
             <div class="card-body">
                 <div class="row align-items-center">
                     <div class="col-md-4">
-                        <a href="" class="btn btn-success btn-sm mr-2">
+                        <a href="{{ route('lembur.export.data', request()->query()) }}"
+                            class="btn btn-success btn-sm mr-2">
                             <i class="fas fa-file-excel"></i> Export
                         </a>
-                        <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#importModal">
+                        <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#importLemburModal">
                             <i class="fas fa-file-upload"></i> Import
                         </button>
                     </div>
@@ -187,14 +198,23 @@
                                     <td>{{ $item->user->name ?? '-' }}</td>
                                     <td>{{ $item->tgl_jam_mulai ?? '-' }}</td>
                                     <td>{{ $item->tgl_jam_selesai ?? '-' }}</td>
+                                    @php
+                                        $statusText = ['approved', 'rejected', 'pending'];
+                                    @endphp
+
                                     <td class="text-center">
                                         @if ($item->tanda_tangan)
-                                            <img src="{{ asset('storage/' . $item->tanda_tangan) }}" alt="Tanda Tangan"
-                                                style="width: 80px; height: auto;">
+                                            @if (in_array(strtolower($item->tanda_tangan), $statusText))
+                                                {{ ucfirst($item->tanda_tangan) }}
+                                            @else
+                                                <img src="{{ asset('storage/' . $item->tanda_tangan) }}"
+                                                    alt="Tanda Tangan" style="width: 80px; height: auto;">
+                                            @endif
                                         @else
                                             -
                                         @endif
                                     </td>
+
 
                                     <td>{{ $item->total_jam_kerja ?? '-' }}</td>
                                     <td>{{ $item->approver ? $item->approver->name : '-' }}</td>
@@ -202,8 +222,10 @@
                                     <td>
                                         @if ($item->status_pengajuan == 'disetujui')
                                             <span class="badge badge-success">Disetujui</span>
-                                        @elseif($item->status == 'ditolak')
+                                        @elseif($item->status_pengajuan == 'ditolak')
                                             <span class="badge badge-danger">Ditolak</span>
+                                        @elseif($item->status_pengajuan == 'menunggu')
+                                            <span class="badge badge-warning">Menunggu</span>
                                         @else
                                             <span class="badge badge-warning">Pending</span>
                                         @endif
@@ -298,74 +320,45 @@
     <!-- /.container-fluid -->
 
     <!-- Import Modal -->
-    <div class="modal fade" id="importModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Import Data Lembur</h5>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <form action="" method="POST" enctype="multipart/form-data">
-                    @csrf
+    <div class="modal fade" id="importLemburModal" tabindex="-1" aria-labelledby="importLemburModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <form action="{{ route('lembur.import.data') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importLemburModalLabel">Import Data Lembur</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
                     <div class="modal-body">
-                        <div class="form-group">
-                            <label>File Excel</label>
-                            <input type="file" class="form-control-file" name="file" accept=".xlsx,.xls" required>
-                            <small class="text-muted">Format: .xlsx atau .xls</small>
+                        <div class="mb-3">
+                            <label for="fileImportLembur" class="form-label">Pilih file (Excel .xlsx):</label>
+                            <input type="file" name="file" id="fileImportLembur" class="form-control" required>
+                        </div>
+                        <div class="alert alert-info p-2">
+                            <small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                <strong>Template:</strong> Pastikan file memiliki header yang sesuai,
+                                seperti: `no_id_karyawan`, `tgl_pengajuan`, `tgl_jam_mulai`,
+                                `tgl_jam_selesai`, `nama_atasan`, `status_pengajuan`, `deskripsi_kerja`,
+                                `section`, `total_jam_kerja`, `tgl_status`.
+                            </small>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Import</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-file-import me-1"></i> Import & Update
+                        </button>
                     </div>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
 
 @push('scripts')
     <script>
-        $(document).ready(function() {
-            $('.btn-detail').on('click', function() {
-                var id = $(this).data('id');
-                $.ajax({
-                    url: '/lembur/' + id,
-                    method: 'GET',
-                    success: function(data) {
-                        $('#detail-name').text(data.user.name || '-');
-                        $('#detail-tgl').text(data.tgl_pengajuan || '-');
-                        $('#detail-mulai').text(data.tgl_jam_mulai || '-');
-                        $('#detail-selesai').text(data.tgl_jam_selesai || '-');
-                        $('#detail-total').text(data.total_jam_kerja || '-');
-                        $('#detail-approver').text(data.approver ? data.approver.name : '-');
-                        $('#detail-deskripsi').text(data.deskripsi_kerja || '-');
-
-                        var statusBadge = '';
-                        if (data.status_pengajuan === 'disetujui') {
-                            statusBadge = '<span class="badge badge-success">Disetujui</span>';
-                        } else if (data.status_pengajuan === 'ditolak') {
-                            statusBadge = '<span class="badge badge-danger">Ditolak</span>';
-                        } else {
-                            statusBadge = '<span class="badge badge-warning">Pending</span>';
-                        }
-                        $('#detail-status').html(statusBadge);
-
-                        if (data.tanda_tangan) {
-                            $('#detail-paraf').html('<img src="/storage/' + data.tanda_tangan +
-                                '" alt="Tanda Tangan" style="width: 100px; height: auto;">');
-                        } else {
-                            $('#detail-paraf').text('-');
-                        }
-
-                        $('#modalDetail').modal('show');
-                    },
-                });
-            });
-        });
-
         $(document).ready(function() {
             $(document).on('click', '.btn-detail', function() {
                 const id = $(this).data('id');
@@ -378,7 +371,7 @@
                         $('#modalDetail table').addClass('opacity-50');
                         $('#modalDetail .modal-body').prepend(
                             '<p class="text-center text-muted" id="loading-text">Loading...</p>'
-                            );
+                        );
                     },
                     success: function(response) {
                         $('#loading-text').remove();
@@ -397,14 +390,21 @@
                             $('#detail-status').html(formatStatus(data.status_pengajuan));
 
                             if (data.tanda_tangan) {
-                                $('#detail-paraf').html(
-                                    `<img src="{{ asset('storage') }}/${data.tanda_tangan}" 
-                       alt="Tanda Tangan" 
-                       style="width:120px; height:auto; border:1px solid #ccc; border-radius:5px;">`
-                                );
+                                // Jika isinya teks status (Approved / Rejected)
+                                if (['approved', 'rejected'].includes(data.tanda_tangan
+                                        .toLowerCase())) {
+                                    $('#detail-paraf').text(data.tanda_tangan);
+                                } else {
+                                    // Jika isinya path file gambar
+                                    $('#detail-paraf').html(
+                                        '<img src="/storage/' + data.tanda_tangan +
+                                        '" alt="Tanda Tangan" style="width: 100px; height: auto;">'
+                                    );
+                                }
                             } else {
                                 $('#detail-paraf').text('-');
                             }
+
                         } else {
                             $('#modalDetail .modal-body').html(
                                 '<p class="text-danger text-center">Data tidak ditemukan.</p>'
@@ -420,6 +420,7 @@
                 });
 
             });
+
             function formatStatus(status) {
                 if (status === 'disetujui') return '<span class="badge bg-success">Disetujui</span>';
                 if (status === 'ditolak') return '<span class="badge bg-danger">Ditolak</span>';
@@ -427,4 +428,4 @@
             }
         });
     </script>
-    @endpush
+@endpush

@@ -25,6 +25,7 @@ class Lembur extends Model
         'status_pengajuan',
         'total_jam_kerja',
         'tgl_status',
+        'tanda_tangan_approver',
     ];
 
     public function jamKerja()

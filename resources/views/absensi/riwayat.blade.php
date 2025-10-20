@@ -18,10 +18,12 @@
                             <div class="col-md-3">
                                 <label for="bulan">Bulan</label>
                                 <select class="form-control" id="bulan" name="bulan">
-                                    @foreach (['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $b)
-                                        <option value="{{ $b }}"
-                                            {{ request('bulan', date('F')) == $b ? 'selected' : '' }}>
-                                            {{ $b }}
+                                    @foreach (['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $namaBulan)
+                                        {{-- value diubah menjadi $loop->iteration (1, 2, 3, ...) --}}
+                                        <option value="{{ $loop->iteration }}" {{-- Logika 'selected' diubah untuk membandingkan angka (date('n')) --}}
+                                            {{ request('bulan', date('n')) == $loop->iteration ? 'selected' : '' }}>
+
+                                            {{ $namaBulan }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -36,35 +38,23 @@
 
                             {{-- Status --}}
                             <div class="col-md-3">
-                                <label for="status">Status</label>
+                                <label for="status">Status</label>t
                                 <select class="form-control" id="status" name="status">
                                     <option value="">Semua Status</option>
-                                    <option value="hadir" {{ request('status') == 'hadir' ? 'selected' : '' }}>Hadir
+
+                                    <option value="Hadir" {{ request('status') == 'Hadir' ? 'selected' : '' }}>
+                                        Hadir
                                     </option>
-                                    <option value="terlambat" {{ request('status') == 'terlambat' ? 'selected' : '' }}>
-                                        Terlambat</option>
-                                    <option value="izin" {{ request('status') == 'izin' ? 'selected' : '' }}>Izin</option>
-                                    <option value="sakit" {{ request('status') == 'sakit' ? 'selected' : '' }}>Sakit
+                                    <option value="Hadir (Terlambat)"
+                                        {{ request('status') == 'Hadir (Terlambat)' ? 'selected' : '' }}>
+                                        Terlambat
                                     </option>
-                                    <option value="alpha" {{ request('status') == 'alpha' ? 'selected' : '' }}>Alpha
+                                    <option value="Tidak Hadir" {{ request('status') == 'Tidak Hadir' ? 'selected' : '' }}>
+                                        Tidak Hadir
                                     </option>
                                 </select>
                             </div>
 
-                            {{-- Search --}}
-                            <div class="col-md-4">
-                                <label for="search">Pencarian</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="search" name="search"
-                                        placeholder="Cari tanggal, waktu, atau keterangan..."
-                                        value="{{ request('search') }}">
-                                    <div class="input-group-append">
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-search"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
                         {{-- Tombol Aksi --}}
@@ -130,42 +120,73 @@
 
                                 {{-- Foto Masuk & Pulang --}}
                                 <td>
-                                    @if ($masuk && $masuk->foto)
-                                        <img src="{{ asset('storage/' . $masuk->foto) }}" alt="Foto Masuk"
-                                            class="rounded shadow-sm mb-1" width="70" height="70"
-                                            style="object-fit: cover; cursor: pointer;"
-                                            onclick="showImageModal('{{ asset('storage/' . $masuk->foto) }}', 'Foto Masuk')">
-                                    @else
-                                        <span class="text-muted d-block">-</span>
-                                    @endif
+                                    <div class="d-flex flex-column align-items-center gap-1">
 
-                                    @if ($pulang && $pulang->foto)
-                                        <img src="{{ asset('storage/' . $pulang->foto) }}" alt="Foto Pulang"
-                                            class="rounded shadow-sm" width="70" height="70"
-                                            style="object-fit: cover; cursor: pointer;"
-                                            onclick="showImageModal('{{ asset('storage/' . $pulang->foto) }}', 'Foto Pulang')">
-                                    @else
-                                        <span class="text-muted d-block">-</span>
-                                    @endif
+                                        {{-- Logika untuk Absen Masuk --}}
+                                        @if ($masuk?->foto)
+                                            {{-- Cek apakah datanya adalah path (mengandung '/') --}}
+                                            @if (Str::contains($masuk->foto, '/'))
+                                                <img src="{{ asset('storage/' . $masuk->foto) }}" width="40"
+                                                    height="40" class="rounded shadow-sm" alt="Foto Masuk">
+                                            @else
+                                                <span class="badge bg-white"><i class="fas fa-info-circle me-1"></i>
+                                                    {{ $masuk->foto }}</span>
+                                            @endif
+                                        @endif
+
+                                        {{-- Logika untuk Absen Pulang --}}
+                                        @if ($pulang?->foto)
+                                            @if (Str::contains($pulang->foto, '/'))
+                                                <img src="{{ asset('storage/' . $pulang->foto) }}" width="40"
+                                                    height="40" class="rounded shadow-sm" alt="Foto Pulang">
+                                            @else
+                                                <span class="badge bg-white"><i class="fas fa-info-circle me-1"></i>
+                                                    {{ $pulang->foto }}</span>
+                                            @endif
+                                        @endif
+
+                                        {{-- Case 3: Tidak ada data sama sekali --}}
+                                        @if (!$masuk?->foto && !$pulang?->foto)
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </div>
                                 </td>
-
-                                {{-- Lokasi Masuk & Pulang --}}
                                 <td>
-                                    @if ($masuk && $masuk->lokasi)
-                                        @php [$lat, $lng] = explode(',', $masuk->lokasi); @endphp
-                                        <a href="https://www.google.com/maps?q={{ $lat }},{{ $lng }}"
-                                            target="_blank" class="btn btn-sm btn-outline-primary mb-1">
-                                            <i class="fas fa-map-marker-alt"></i> Masuk
-                                        </a>
-                                    @endif
+                                    <div class="d-flex flex-column align-items-center gap-1">
 
-                                    @if ($pulang && $pulang->lokasi)
-                                        @php [$lat, $lng] = explode(',', $pulang->lokasi); @endphp
-                                        <a href="https://www.google.com/maps?q={{ $lat }},{{ $lng }}"
-                                            target="_blank" class="btn btn-sm btn-outline-danger">
-                                            <i class="fas fa-map-marker-alt"></i> Pulang
-                                        </a>
-                                    @endif
+                                        {{-- Logika untuk Absen Masuk --}}
+                                        @if ($masuk?->lokasi)
+                                            {{-- Cek apakah datanya adalah koordinat (mengandung ',') --}}
+                                            @if (Str::contains($masuk->lokasi, ','))
+                                                {{-- Format link diperbaiki agar langsung mencari koordinat --}}
+                                                <a href="https://www.google.com/maps?q={{ $masuk->lokasi }}"
+                                                    target="_blank" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-map-marker-alt"></i> Masuk
+                                                </a>
+                                            @else
+                                                <span class="badge bg-white"><i class="fas fa-info-circle me-1"></i>
+                                                    {{ $masuk->lokasi }}</span>
+                                            @endif
+                                        @endif
+
+                                        {{-- Logika untuk Absen Pulang --}}
+                                        @if ($pulang?->lokasi)
+                                            @if (Str::contains($pulang->lokasi, ','))
+                                                <a href="https://www.google.com/maps?q={{ $pulang->lokasi }}"
+                                                    target="_blank" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-map-marker-alt"></i> Pulang
+                                                </a>
+                                            @else
+                                                <span class="badge bg-white"><i class="fas fa-info-circle me-1"></i>
+                                                    {{ $pulang->lokasi }}</span>
+                                            @endif
+                                        @endif
+
+                                        {{-- Case 3: Tidak ada data sama sekali --}}
+                                        @if (!$masuk?->lokasi && !$pulang?->lokasi)
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </div>
                                 </td>
 
                                 {{-- Keterangan --}}

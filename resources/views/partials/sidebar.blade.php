@@ -88,15 +88,7 @@
         <li class="nav-item">
             <a class="nav-link" href="{{ route('profile.edit') }}">
                 <i class="fas fa-fw fa-user"></i>
-                <span>Profil</span>
-            </a>
-        </li>
-
-        {{-- PENGATURAN --}}
-        <li class="nav-item">
-            <a class="nav-link" href="">
-                <i class="fas fa-fw fa-cogs"></i>
-                <span>Pengaturan</span>
+                <span>Profile</span>
             </a>
         </li>
 
@@ -107,7 +99,7 @@
         {{-- ABSENSI --}}
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#absensiKaryawan">
-                <i class="fas fa-fw fa-calendar-day"></i>
+                <i class="fas fa-fw fa-calendar-check"></i>
                 <span>Absensi</span>
             </a>
             <div id="absensiKaryawan" class="collapse">
@@ -121,7 +113,7 @@
         {{-- CUTI --}}
         <li class="nav-item">
             <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#cutiKaryawan">
-                <i class="fas fa-fw fa-plane"></i>
+                <i class="fas fa-calendar-day"></i>
                 <span>Cuti</span>
             </a>
             <div id="cutiKaryawan" class="collapse">
@@ -150,7 +142,7 @@
         <li class="nav-item">
             <a class="nav-link" href="{{ route('profile.edit') }}">
                 <i class="fas fa-fw fa-user"></i>
-                <span>Profil</span>
+                <span>Profile</span>
             </a>
         </li>
 
@@ -179,7 +171,7 @@
                 <span>Cuti</span>
             </a>
             <div id="cutiAtasan" class="collapse">
-                <div class="bg-white py-2 collapse-inner rounded">
+                <div class="bg-white py-2 colflapse-inner rounded">
                     <a class="collapse-item" href="{{ route('cuti.create') }}">Pengajuan Cuti</a>
                     <a class="collapse-item" href="{{ route('cuti.riwayat') }}">Riwayat Cuti</a>
                     <a class="collapse-item" href="{{ route('cuti.approval') }}">Approval dari Karyawan</a>
@@ -206,7 +198,7 @@
         <li class="nav-item">
             <a class="nav-link" href="{{ route('profile.edit') }}">
                 <i class="fas fa-fw fa-user"></i>
-                <span>Profil</span>
+                <span>Profile</span>
             </a>
         </li>
 
@@ -262,7 +254,7 @@
         <li class="nav-item">
             <a class="nav-link" href="{{ route('profile.edit') }}">
                 <i class="fas fa-fw fa-user"></i>
-                <span>Profil</span>
+                <span>Profile</span>
             </a>
         </li>
     @endif

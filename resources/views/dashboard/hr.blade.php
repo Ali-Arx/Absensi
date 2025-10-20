@@ -1,4 +1,3 @@
-{{-- resources/views/dashboard/hr.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Dashboard HR - PT. Vortex Energy Batam')

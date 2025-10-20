@@ -5,9 +5,9 @@
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-bordered table-hover" width="100%" cellspacing="0">
-                <thead class="thead-light">
-                    <tr class="text-center">
+            <table class="table table-bordered table-hover">
+                <thead class="thead-light text-center">
+                    <tr>
                         <th>No</th>
                         <th>Nama</th>
                         <th>Departemen</th>
@@ -18,35 +18,68 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="text-center">
-                        <td>1</td>
-                        <td>Rizki Pratama</td>
-                        <td>Produksi</td>
-                        <td>2025-10-08</td>
-                        <td>08:02</td>
-                        <td>17:01</td>
-                        <td><span class="badge badge-success">Hadir</span></td>
-                    </tr>
-                    <tr class="text-center">
-                        <td>2</td>
-                        <td>Soleha Amelia</td>
-                        <td>HRD</td>
-                        <td>2025-10-08</td>
-                        <td>08:10</td>
-                        <td>17:00</td>
-                        <td><span class="badge badge-warning">Terlambat</span></td>
-                    </tr>
-                    <tr class="text-center">
-                        <td>3</td>
-                        <td>Andi Saputra</td>
-                        <td>Maintenance</td>
-                        <td>2025-10-08</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td><span class="badge badge-danger">Tidak Hadir</span></td>
-                    </tr>
+                    {{-- Loop data dari controller --}}
+                    @forelse ($data as $index => $item)
+                        <tr class="text-center">
+                            <td>{{ $index + 1 }}</td>
+
+                            {{-- Data Karyawan --}}
+                            <td class="text-start">{{ $item['name'] }}</td>
+                            <td>{{ $item['departement'] ?? '-' }}</td>
+                            <td>{{ $item['tanggal'] }}</td>
+
+                            {{-- Jam Masuk/Pulang --}}
+                            <td>{{ $item['jam_masuk'] }}</td>
+                            <td>{{ $item['jam_pulang'] }}</td>
+
+                            {{-- Kolom Status dengan Badge (dari kode Anda) --}}
+                            <td class="text-center">
+                                @php $status = $item['status']; @endphp
+
+                                {{-- 1. Status Absensi --}}
+                                @if ($status == 'Hadir')
+                                    <span class="badge bg-success">Hadir</span>
+                                @elseif ($status == 'Hadir (Terlambat)')
+                                    <span class="badge bg-warning text-dark">Hadir (Terlambat)</span>
+                                @elseif ($status == 'Tidak Hadir')
+                                    <span class="badge bg-danger">Tidak Hadir</span>
+
+                                    {{-- 2. Status Cuti (Aktif atau Pengajuan) --}}
+                                @elseif (Str::startsWith($status, 'Cuti'))
+                                    @if ($status == 'Cuti (Disetujui)')
+                                        <span class="badge bg-info text-dark">{{ $status }}</span>
+                                    @elseif ($status == 'Cuti (Ditolak)')
+                                        <span class="badge bg-danger">{{ $status }}</span>
+                                    @else
+                                        {{-- Ini akan menangkap 'Cuti (Menunggu)' atau status custom lainnya --}}
+                                        <span class="badge bg-secondary">{{ $status }}</span>
+                                    @endif
+
+                                    {{-- 3. Status Lembur (Aktif atau Pengajuan) --}}
+                                @elseif (Str::startsWith($status, 'Lembur'))
+                                    @if ($status == 'Lembur (Disetujui)')
+                                        <span class="badge bg-primary">{{ $status }}</span>
+                                    @elseif ($status == 'Lembur (Ditolak)')
+                                        <span class="badge bg-danger">{{ $status }}</span>
+                                    @else
+                                        {{-- Ini akan menangkap 'Lembur (Menunggu)' --}}
+                                        <span class="badge bg-secondary">{{ $status }}</span>
+                                    @endif
+                                @else
+                                    {{-- Fallback jika ada status aneh --}}
+                                    <span class="badge bg-dark">{{ $status }}</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        {{-- Tampilkan ini jika tidak ada user di database --}}
+                        <tr>
+                            <td colspan="7" class="text-center">Tidak ada data karyawan.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
+
         </div>
     </div>
 </div>

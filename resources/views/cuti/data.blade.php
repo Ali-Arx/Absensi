@@ -10,6 +10,23 @@
             <h1 class="h3 mb-0 text-gray-800">Data Cuti</h1>
         </div>
 
+        <div class="row mb-4">
+            <div class="col-md-12">
+                @if (session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+                @if (session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+            </div>
+        </div>
+
         <!-- Filter Section -->
         <div class="card shadow mb-4">
             <div class="card-body">
@@ -17,38 +34,57 @@
 
                     <div class="col-md-3">
                         <label for="department" class="form-label small fw-bold">Department</label>
-                        <select name="department" id="department" class="form-select">
+                        <select name="department" id="department" class="form-control">
                             <option value="">Semua</option>
-                            <option value="Staff">Staff</option>
-                            <option value="Supervisor">Supervisor</option>
-                            <option value="Manager">Manager</option>
+
+                            {{-- Ganti <option> statis Anda dengan loop ini --}}
+                            @foreach ($departments as $dept)
+                                <option value="{{ $dept }}" {{ request('department') == $dept ? 'selected' : '' }}>
+                                    {{ $dept }}
+                                </option>
+                            @endforeach
+
                         </select>
                     </div>
 
                     <div class="col-md-3">
-                        <label for="status_pengajuan" class="form-label small fw-bold">Status Cuti</label>
-                        <select name="status_pengajuan" id="status_pengajuan" class="form-select">
+                        <label class="form-label fw-semibold">Status Cuti</label>
+                        <select name="status" class="form-control">
                             <option value="">Semua Status</option>
-                            <option value="Diajukan">Diajukan</option>
-                            <option value="Disetujui">Disetujui</option>
-                            <option value="Ditolak">Ditolak</option>
+                            <option value="menunggu" {{ request('status_pengajuan') == 'menunggu' ? 'selected' : '' }}>
+                                Menunggu</option>
+                            <option value="disetujui" {{ request('status_pengajuan') == 'disetujui' ? 'selected' : '' }}>
+                                Disetujui
+                            </option>
+                            <option value="ditolak" {{ request('status_pengajuan') == 'ditolak' ? 'selected' : '' }}>
+                                Ditolak
+                            </option>
                         </select>
                     </div>
 
+
                     <div class="col-md-3">
-                        <label for="bulan" class="form-label small fw-bold">Bulan</label>
-                        <select name="bulan" id="bulan" class="form-select">
-                            @foreach (['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $b)
-                                <option value="{{ $b }}">{{ $b }}</option>
+                        <label for="bulan">Bulan</label>
+                        <select class="form-control" id="bulan" name="bulan">
+                            @foreach (['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $namaBulan)
+                                {{-- value diubah menjadi $loop->iteration (1, 2, 3, ...) --}}
+                                <option value="{{ $loop->iteration }}" {{-- Logika 'selected' diubah untuk membandingkan angka (date('n')) --}}
+                                    {{ request('bulan', date('n')) == $loop->iteration ? 'selected' : '' }}>
+
+                                    {{ $namaBulan }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="col-md-3">
-                        <label for="tahun" class="form-label small fw-bold">Tahun</label>
-                        <select name="tahun" id="tahun" class="form-select">
-                            @for ($y = now()->year; $y >= 2020; $y--)
-                                <option value="{{ $y }}">{{ $y }}</option>
+                        <label class="form-label fw-semibold">Tahun</label>
+                        <select name="tahun" class="form-control">
+                            @for ($i = 2020; $i <= 2030; $i++)
+                                <option value="{{ $i }}"
+                                    {{ request('tahun', date('Y')) == $i ? 'selected' : '' }}>
+                                    {{ $i }}
+                                </option>
                             @endfor
                         </select>
                     </div>
@@ -57,10 +93,11 @@
                         <button type="submit" class="btn btn-primary btn-sm me-2">
                             <i class="fas fa-filter me-1"></i> Terapkan
                         </button>
-                        <button type="button" class="btn btn-success btn-sm me-2">
-                            <i class="fas fa-file-export me-1"></i> Export
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm">
+                        <a href="{{ route('cuti.export.data', request()->query()) }}" class="btn btn-success btn-sm me-2">
+                            <i class="fas fa-file-excel me-1"></i> Export
+                        </a>
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#importCutiModal">
                             <i class="fas fa-file-import me-1"></i> Import
                         </button>
                     </div>
@@ -134,7 +171,6 @@
                         </tbody>
                     </table>
                     <div class="d-flex justify-content-between align-items-center mt-3">
-                        
                         <div>
                             {{ $cutis->appends(request()->query())->links() }}
                         </div>
@@ -208,6 +244,47 @@
                     <div id="action-buttons"></div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="importCutiModal" tabindex="-1" aria-labelledby="importCutiModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <form action="{{ route('cuti.import.data') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importCutiModalLabel">Import Data Cuti</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="fileImportCuti" class="form-label">Pilih file (Excel .xlsx):</label>
+                            <input type="file" name="file" id="fileImportCuti" class="form-control" required>
+                        </div>
+                        <div class="alert alert-info p-2">
+                            <small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                <strong>Template Wajib:</strong> Gunakan file Excel dari "Export Cuti".
+                                Data akan di-update berdasarkan "No ID Karyawan" dan "Tgl Mulai".
+                            </small>
+                        </div>
+                        <div class="alert alert-warning p-2">
+                            <small>
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                <strong>Pencocokan Atasan:</strong> "Nama Atasan" akan dicocokkan berdasarkan nama. Pastikan
+                                nama di Excel sama persis dengan nama di database.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-file-import me-1"></i> Import & Update
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 

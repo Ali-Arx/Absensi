@@ -1,4 +1,4 @@
-@extends('layouts.app') {{-- pastikan kamu sudah punya layout sb-admin2 --}}
+@extends('layouts.app') 
 
 @section('title', 'Dashboard Atasan')
 
@@ -36,9 +36,8 @@
                     <div class="card-body">
                         <h6 class="fw-bold text-gray-800 mb-3">Absen Datang</h6>
                         <div class="small text-gray-600">
-                            <div>Pagi: 07:00:00</div>
-                            <div>Normal: 08:00:00</div>
-                            <div>Malam: 15:30:00</div>
+                            <div>Pagi: 08:00:00</div>
+                            <div>Malam: 16:00:00</div>
                         </div>
                     </div>
                 </div>
@@ -50,8 +49,7 @@
                     <div class="card-body">
                         <h6 class="fw-bold text-gray-800 mb-3">Absen Pulang</h6>
                         <div class="small text-gray-600">
-                            <div>Pagi: 16:00:00</div>
-                            <div>Normal: 17:00:00</div>
+                            <div>Pagi: 17:00:00</div>
                             <div>Malam: 00:00:00</div>
                         </div>
                     </div>

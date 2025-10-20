@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+@section('title', 'Approval Lembur')
+
+
 @section('content')
     <!-- Begin Page Content -->
     <div class="container-fluid">
@@ -24,43 +27,42 @@
                             <label for="status" class="form-label">Status</label>
                             <select class="form-control" id="status" name="status">
                                 <option value="">Semua Status</option>
-                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
+                                <option value="menunggu" {{ request('status_pengajuan') == 'menunggu' ? 'selected' : '' }}>
+                                    Menunggu
                                 </option>
-                                <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved
+                                <option value="disetujui"
+                                    {{ request('status_pengajuan') == 'disetujui' ? 'selected' : '' }}>Disetujui
                                 </option>
-                                <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected
+                                <option value="ditolak" {{ request('status_pengajuan') == 'ditolak' ? 'selected' : '' }}>
+                                    Ditolak
                                 </option>
                             </select>
                         </div>
 
                         <!-- Month Filter -->
                         <div class="col-md-2 mb-3">
-                            <label for="bulan" class="form-label">Bulan</label>
+
+                            <label for="bulan">Bulan</label>
                             <select class="form-control" id="bulan" name="bulan">
-                                <option value="">Pilih Bulan</option>
-                                <option value="1" {{ request('bulan') == '1' ? 'selected' : '' }}>Januari</option>
-                                <option value="2" {{ request('bulan') == '2' ? 'selected' : '' }}>Februari</option>
-                                <option value="3" {{ request('bulan') == '3' ? 'selected' : '' }}>Maret</option>
-                                <option value="4" {{ request('bulan') == '4' ? 'selected' : '' }}>April</option>
-                                <option value="5" {{ request('bulan') == '5' ? 'selected' : '' }}>Mei</option>
-                                <option value="6" {{ request('bulan') == '6' ? 'selected' : '' }}>Juni</option>
-                                <option value="7" {{ request('bulan') == '7' ? 'selected' : '' }}>Juli</option>
-                                <option value="8" {{ request('bulan') == '8' ? 'selected' : '' }}>Agustus</option>
-                                <option value="9" {{ request('bulan') == '9' ? 'selected' : '' }}>September</option>
-                                <option value="10" {{ request('bulan') == '10' ? 'selected' : '' }}>Oktober</option>
-                                <option value="11" {{ request('bulan') == '11' ? 'selected' : '' }}>November</option>
-                                <option value="12" {{ request('bulan') == '12' ? 'selected' : '' }}>Desember</option>
+                                @foreach (['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] as $namaBulan)
+                                    {{-- value diubah menjadi $loop->iteration (1, 2, 3, ...) --}}
+                                    <option value="{{ $loop->iteration }}" {{-- Logika 'selected' diubah untuk membandingkan angka (date('n')) --}}
+                                        {{ request('bulan', date('n')) == $loop->iteration ? 'selected' : '' }}>
+
+                                        {{ $namaBulan }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
-
                         <!-- Year Filter -->
                         <div class="col-md-2 mb-3">
                             <label for="tahun" class="form-label">Tahun</label>
-                            <select class="form-control" id="tahun" name="tahun">
-                                <option value="">Pilih Tahun</option>
-                                @for ($year = date('Y'); $year >= 2020; $year--)
-                                    <option value="{{ $year }}" {{ request('tahun') == $year ? 'selected' : '' }}>
-                                        {{ $year }}</option>
+                            <select name="tahun" class="form-control">
+                                @for ($i = 2020; $i <= 2030; $i++)
+                                    <option value="{{ $i }}"
+                                        {{ request('tahun', date('Y')) == $i ? 'selected' : '' }}>
+                                        {{ $i }}
+                                    </option>
                                 @endfor
                             </select>
                         </div>
@@ -105,14 +107,23 @@
                                     <td>{{ $item->user->name ?? '-' }}</td>
                                     <td>{{ $item->tgl_jam_mulai ?? '-' }}</td>
                                     <td>{{ $item->tgl_jam_selesai ?? '-' }}</td>
+                                    @php
+                                        $statusText = ['approved', 'rejected', 'pending'];
+                                    @endphp
+
                                     <td class="text-center">
                                         @if ($item->tanda_tangan)
-                                            <img src="{{ asset('storage/' . $item->tanda_tangan) }}" alt="Tanda Tangan"
-                                                style="width: 80px; height: auto;">
+                                            @if (in_array(strtolower($item->tanda_tangan), $statusText))
+                                                {{ ucfirst($item->tanda_tangan) }}
+                                            @else
+                                                <img src="{{ asset('storage/' . $item->tanda_tangan) }}" alt="Tanda Tangan"
+                                                    style="width: 80px; height: auto;">
+                                            @endif
                                         @else
                                             -
                                         @endif
                                     </td>
+
 
                                     <td>{{ $item->total_jam_kerja ?? '-' }}</td>
                                     <td>{{ $item->approver ? $item->approver->name : '-' }}</td>
@@ -120,8 +131,10 @@
                                     <td>
                                         @if ($item->status_pengajuan == 'disetujui')
                                             <span class="badge badge-success">Disetujui</span>
-                                        @elseif($item->status == 'ditolak')
+                                        @elseif($item->status_pengajuan == 'ditolak')
                                             <span class="badge badge-danger">Ditolak</span>
+                                        @elseif($item->status_pengajuan == 'menunggu')
+                                            <span class="badge badge-warning">Menunggu</span>
                                         @else
                                             <span class="badge badge-warning">Pending</span>
                                         @endif
@@ -241,7 +254,7 @@
                         $('#modalDetail table').addClass('opacity-50');
                         $('#modalDetail .modal-body').prepend(
                             '<p class="text-center text-muted" id="loading-text">Loading...</p>'
-                            );
+                        );
                     },
                     success: function(response) {
                         $('#loading-text').remove();
