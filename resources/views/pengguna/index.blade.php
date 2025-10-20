@@ -48,9 +48,9 @@
                             <label for="department" class="form-label font-weight-bold">Department</label>
                             <select class="form-control" id="department" name="department">
                                 <option value="">Staff</option>
-                                <option value="HR" {{ request('department') == 'HR' ? 'selected' : '' }}>HR</option>
-                                <option value="IT" {{ request('department') == 'IT' ? 'selected' : '' }}>IT</option>
-                                <option value="Finance" {{ request('department') == 'Finance' ? 'selected' : '' }}>Finance
+                                <option value="HR" {{ request('department') == 'Office' ? 'selected' : '' }}>Office</option>
+                                <option value="IT" {{ request('department') == 'Sales' ? 'selected' : '' }}>Sales</option>
+                                <option value="Finance" {{ request('department') == 'Productionh' ? 'selected' : '' }}>Productionh
                                 </option>
                                 <option value="Operations" {{ request('department') == 'Operations' ? 'selected' : '' }}>
                                     Operations</option>
@@ -224,7 +224,7 @@
                                                                     <option value="IT"
                                                                         {{ $user->department == 'IT' ? 'selected' : '' }}>
                                                                         IT</option>
-                                                                    <option value="Finance"
+                                                                    <option value="Productionh"
                                                                         {{ $user->department == 'Finance' ? 'selected' : '' }}>
                                                                         Finance</option>
                                                                     <option value="Operations"
