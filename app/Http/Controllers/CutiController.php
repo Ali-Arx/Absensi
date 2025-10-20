@@ -211,7 +211,7 @@ class CutiController extends Controller
         $validated = $request->validate([
             'status_pengajuan' => ['required', Rule::in(['disetujui', 'ditolak'])],
             'komentar' => 'nullable|string|max:255',
-            'tanda_tangan_approval' => 'required|string', // TTD wajib diisi
+            'ttd_atasan_base64' => 'required|string', // TTD wajib diisi
         ]);
 
         $imageData = $validated['ttd_atasan_base64'];
@@ -230,7 +230,7 @@ class CutiController extends Controller
             'status_pengajuan' => $validated['status_pengajuan'],
             'komentar' => $validated['komentar'],
             'tanda_tangan_approval' => $imagePath, // Simpan URL publik ke file
-            'tgl_disetujui' => now(), // Catat tanggal persetujuan
+            'tgl_status' => now(), // Catat tanggal persetujuan
         ]);
 
         // 4. Kembalikan ke halaman sebelumnya dengan pesan sukses

@@ -98,8 +98,8 @@
                                     <td>{{ $cuti->approver ? $cuti->approver->name : '-' }}</td>
                                     <td>{{ $cuti->jenis_cuti }}</td>
                                     <td>{{ \Carbon\Carbon::parse($cuti->tgl_pengajuan)->format('d M Y') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($cuti->mulai)->format('d M Y') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($cuti->selesai)->format('d M Y') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($cuti->tgl_mulai)->format('d M Y') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($cuti->tgl_selesai)->format('d M Y') }}</td>
                                     <td>{{ $cuti->alasan }}</td>
                                     <td>
                                         @if ($cuti->status_pengajuan == 'menunggu')

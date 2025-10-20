@@ -1,5 +1,5 @@
 {{-- resources/views/partials/sidebar.blade.php --}}
-<nav class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar" >
+<nav class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
     <!-- Brand -->
     <a class="sidebar-brand d-flex flex-column align-items-center justify-content-center py-3"
@@ -12,13 +12,27 @@
 
     <hr class="sidebar-divider my-0">
 
-    <!-- DASHBOARD (Semua Role) -->
+    @php
+        $user = Auth::user();
+    @endphp
+
     <li class="nav-item">
-        <a class="nav-link" href="{{ route('dashboard') }}">
-            <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Dashboard</span>
+        @if ($user->role === 'hr')
+            <a class="nav-link" href="{{ route('dashboard.hr') }}">
+            @elseif ($user->role === 'direktur')
+                <a class="nav-link" href="{{ route('dashboard.direktur') }}">
+                @elseif ($user->role === 'atasan')
+                    <a class="nav-link" href="{{ route('dashboard.atasan') }}">
+                    @elseif ($user->role === 'karyawan')
+                        <a class="nav-link" href="{{ route('dashboard.karyawan') }}">
+                        @else
+                            <a class="nav-link" href="#">
+        @endif
+        <i class="fas fa-fw fa-tachometer-alt"></i>
+        <span>Dashboard</span>
         </a>
     </li>
+
 
     <hr class="sidebar-divider">
 
@@ -33,7 +47,7 @@
                 <i class="fas fa-fw fa-calendar-check"></i>
                 <span>Absensi</span>
             </a>
-            <div id="absensiHR" class="collapse" data-parent="#accordionSidebar">
+            <div id="absensiHR" class="collapse" >
                 <div class="bg-white py-2 collapse-inner rounded">
                     <a class="collapse-item" href="{{ route('absensi.create') }}">Absensi</a>
                     <a class="collapse-item" href="{{ route('absensi.riwayat') }}">Riwayat Absensi</a>
@@ -49,7 +63,7 @@
                 <i class="fas fa-calendar-day"></i>
                 <span>Cuti</span>
             </a>
-            <div id="cutiHR" class="collapse" data-parent="#accordionSidebar">
+            <div id="cutiHR" class="collapse">
                 <div class="bg-white py-2 collapse-inner rounded">
                     <a class="collapse-item" href="{{ route('cuti.create') }}">Pengajuan Cuti</a>
                     <a class="collapse-item" href="{{ route('cuti.riwayat') }}">Riwayat Cuti</a>
@@ -66,7 +80,7 @@
                 <i class="fas fa-fw fa-clock"></i>
                 <span>Lembur</span>
             </a>
-            <div id="lemburHR" class="collapse" data-parent="#accordionSidebar">
+            <div id="lemburHR" class="collapse" >
                 <div class="bg-white py-2 collapse-inner rounded">
                     <a class="collapse-item" href="{{ route('lembur.create') }}">Pengajuan Lembur</a>
                     <a class="collapse-item" href="{{ route('lembur.riwayat') }}">Riwayat Lembur</a>
