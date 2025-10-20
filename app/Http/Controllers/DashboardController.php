@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Absensi;
 use App\Models\Cuti;
 use App\Models\Lembur;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -148,8 +149,43 @@ class DashboardController extends Controller
         return view('dashboard.hr', compact('data'));
     }
 
+    public function direktur()
+    {
+        $user = Auth::user();
+     $cutiDisetujui = Cuti::where('user_id', $user->id)
+            ->where('status_pengajuan', 'disetujui')
+            ->count();
+    $lemburDisetujui = Lembur::where('user_id', $user->id)
+            ->where('status_pengajuan', 'disetujui')
+            ->count();
+        return view('dashboard.direktur', compact('user', 'cutiDisetujui', 'lemburDisetujui'));
+    }
+
     public function atasan()
     {
-        return view('dashboard.atasan');
+        $user = Auth::user();
+     $cutiDisetujui = Cuti::where('user_id', $user->id)
+            ->where('status_pengajuan', 'disetujui')
+            ->count();
+        $lemburDisetujui = Lembur::where('user_id', $user->id)
+            ->where('status_pengajuan', 'disetujui')
+            ->count();
+
+        return view('dashboard.atasan', compact('user', 'cutiDisetujui', 'lemburDisetujui'));
+    }
+
+    public function karyawan()
+    {
+        $user = Auth::user();
+ 
+        // Bisa tambahkan detail lain juga
+        $cutiDisetujui = Cuti::where('user_id', $user->id)
+            ->where('status_pengajuan', 'disetujui')
+            ->count();
+        $lemburDisetujui = Lembur::where('user_id', $user->id)
+            ->where('status_pengajuan', 'disetujui')
+            ->count();
+
+        return view('dashboard.karyawan', compact('user', 'cutiDisetujui', 'lemburDisetujui'));
     }
 }

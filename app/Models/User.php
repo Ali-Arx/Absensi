@@ -58,4 +58,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function cutis()
+{
+    return $this->hasMany(Cuti::class, 'user_id');
+}
 }

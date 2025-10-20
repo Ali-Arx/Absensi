@@ -7,7 +7,7 @@
 
         <!-- Page Heading -->
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+            <h1 class="h3 mb-0 text-gray-800">Dashboard Direktur</h1>
         </div>
 
         <!-- Welcome Section -->
@@ -63,7 +63,7 @@
                 <div class="card border-left-warning shadow h-100 py-2">
                     <div class="card-body text-center">
                         <h6 class="fw-bold text-gray-800">Total Cuti</h6>
-                        <h3 class="fw-bold text-warning mt-2">3</h3>
+                        <h3 class="fw-bold text-warning mt-2">{{ $cutiDisetujui }}</h3>
                     </div>
                 </div>
             </div>
@@ -73,7 +73,7 @@
                 <div class="card border-left-success shadow h-100 py-2">
                     <div class="card-body text-center">
                         <h6 class="fw-bold text-gray-800">Total OT</h6>
-                        <h3 class="fw-bold text-success mt-2">10</h3>
+                        <h3 class="fw-bold text-success mt-2">{{ $lemburDisetujui }}</h3>
                     </div>
                 </div>
             </div>

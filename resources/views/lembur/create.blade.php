@@ -46,22 +46,23 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Date</label>
                             <div class="input-group">
-                                <input type="date" name="tgl_pengajuan" class="form-control" required>
+                                <input type="text" name="tgl_pengajuan" class="form-control"
+                                    value="{{ now()->format('Y-m-d') }}" readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Departemen</label>
-                            <div class="row g-2">
-                                <div class="col-md-6">
-                                    <input type="text" name="nama_karyawan" class="form-control"
-                                        value="{{ old('nama_karyawan', Auth::user()->departement ?? '') }}" readonly>
-                                </div>
+                            <div class="input-group">
+
+                                <input type="text" name="nama_karyawan" class="form-control"
+                                    value="{{ old('nama_karyawan', Auth::user()->departement ?? '') }}" readonly>
+
                             </div>
                         </div>
                     </div>
 
                     <!-- Row 2: Pilih Shift -->
-                   
+
 
                     <!-- Row 3: Waktu (2 Input Terpisah) -->
                     <div class="mb-3">
@@ -84,7 +85,7 @@
                         </div>
                     </div>
 
-                    
+
                     <!-- Row 5: Nama Karyawan & Nama Atasan -->
                     <div class="row mb-3">
                         <div class="col-md-6">

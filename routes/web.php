@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AbsensiController;
 use App\Http\Controllers\PenggunaController;
 use App\Http\Controllers\auth\PasswordController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 // ROUTE UTAMA / LOGIN (guest)
 Route::middleware('guest')->group(function () {
@@ -20,19 +21,8 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
 
     // Redirect otomatis sesuai role
-    Route::get('/dashboard', function () {
-        $user = auth('')->user();
-        if ($user->role === 'hr') {
-            return redirect()->route('dashboard.hr');
-        } elseif ($user->role === 'direktur') {
-            return redirect()->route('dashboard.direktur');
-        } elseif ($user->role === 'atasan') {
-            return redirect()->route('dashboard.atasan');
-        } elseif ($user->role === 'karyawan') {
-            return redirect()->route('dashboard.karyawan');
-        }
-        abort(403, 'Role tidak dikenal.');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+
 
     // HR
     Route::middleware('role:hr')->group(function () {
@@ -41,7 +31,7 @@ Route::middleware('auth')->group(function () {
 
     // Direktur
     Route::middleware('role:direktur')->group(function () {
-        Route::get('/dashboard/direktur', fn() => view('dashboard.direktur'))->name('dashboard.direktur');
+        Route::get('/dashboard/direktur', [DashboardController::class, 'direktur'])->name('dashboard.direktur');
     });
 
     // Atasan
@@ -51,7 +41,7 @@ Route::middleware('auth')->group(function () {
 
     // Karyawan
     Route::middleware('role:karyawan')->group(function () {
-        Route::get('/dashboard/karyawan', fn() => view('dashboard.karyawan'))->name('dashboard.karyawan');
+        Route::get('/dashboard/karyawan', [DashboardController::class, 'karyawan'])->name('dashboard.karyawan');
     });
 
     // Routes Cuti
