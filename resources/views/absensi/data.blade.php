@@ -7,6 +7,22 @@
         <h1 class="h3 text-gray-800">Data Absensi</h1>
     </div>
 
+    <div class="mt-4">
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+    </div>
+
     <div class="card shadow border-0">
         <div class="card-body">
 
@@ -117,39 +133,70 @@
                                         -
                                     @endif
                                 </td>
-
-                                {{-- Kolom Kode Verifikasi --}}
                                 <td>
                                     <div class="d-flex flex-column align-items-center gap-1">
+
+                                        {{-- Logika untuk Absen Masuk --}}
                                         @if ($masuk?->foto)
-                                            <img src="{{ asset('storage/' . $masuk->foto) }}" width="40" height="40"
-                                                class="rounded shadow-sm">
+                                            {{-- Cek apakah datanya adalah path (mengandung '/') --}}
+                                            @if (Str::contains($masuk->foto, '/'))
+                                                <img src="{{ asset('storage/' . $masuk->foto) }}" width="40"
+                                                    height="40" class="rounded shadow-sm" alt="Foto Masuk">
+                                            @else
+                                                <span class="badge bg-white"><i class="fas fa-info-circle me-1"></i>
+                                                    {{ $masuk->foto }}</span>
+                                            @endif
                                         @endif
+
+                                        {{-- Logika untuk Absen Pulang --}}
                                         @if ($pulang?->foto)
-                                            <img src="{{ asset('storage/' . $pulang->foto) }}" width="40"
-                                                height="40" class="rounded shadow-sm">
+                                            @if (Str::contains($pulang->foto, '/'))
+                                                <img src="{{ asset('storage/' . $pulang->foto) }}" width="40"
+                                                    height="40" class="rounded shadow-sm" alt="Foto Pulang">
+                                            @else
+                                                <span class="badge bg-white"><i class="fas fa-info-circle me-1"></i>
+                                                    {{ $pulang->foto }}</span>
+                                            @endif
                                         @endif
+
+                                        {{-- Case 3: Tidak ada data sama sekali --}}
                                         @if (!$masuk?->foto && !$pulang?->foto)
                                             <span class="text-muted">-</span>
                                         @endif
                                     </div>
                                 </td>
-
-                                {{-- Kolom Lokasi --}}
                                 <td>
                                     <div class="d-flex flex-column align-items-center gap-1">
+
+                                        {{-- Logika untuk Absen Masuk --}}
                                         @if ($masuk?->lokasi)
-                                            <a href="https://www.google.com/maps?q={{ $masuk->lokasi }}" target="_blank"
-                                                class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-map-marker-alt"></i> Masuk
-                                            </a>
+                                            {{-- Cek apakah datanya adalah koordinat (mengandung ',') --}}
+                                            @if (Str::contains($masuk->lokasi, ','))
+                                                {{-- Format link diperbaiki agar langsung mencari koordinat --}}
+                                                <a href="https://www.google.com/maps?q={{ $masuk->lokasi }}"
+                                                    target="_blank" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-map-marker-alt"></i> Masuk
+                                                </a>
+                                            @else
+                                                <span class="badge bg-white"><i class="fas fa-info-circle me-1"></i>
+                                                    {{ $masuk->lokasi }}</span>
+                                            @endif
                                         @endif
+
+                                        {{-- Logika untuk Absen Pulang --}}
                                         @if ($pulang?->lokasi)
-                                            <a href="https://www.google.com/maps?q={{ $pulang->lokasi }}" target="_blank"
-                                                class="btn btn-sm btn-outline-danger">
-                                                <i class="fas fa-map-marker-alt"></i> Pulang
-                                            </a>
+                                            @if (Str::contains($pulang->lokasi, ','))
+                                                <a href="https://www.google.com/maps?q={{ $pulang->lokasi }}"
+                                                    target="_blank" class="btn btn-sm btn-outline-danger">
+                                                    <i class="fas fa-map-marker-alt"></i> Pulang
+                                                </a>
+                                            @else
+                                                <span class="badge bg-white"><i class="fas fa-info-circle me-1"></i>
+                                                    {{ $pulang->lokasi }}</span>
+                                            @endif
                                         @endif
+
+                                        {{-- Case 3: Tidak ada data sama sekali --}}
                                         @if (!$masuk?->lokasi && !$pulang?->lokasi)
                                             <span class="text-muted">-</span>
                                         @endif

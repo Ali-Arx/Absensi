@@ -107,14 +107,23 @@
                                     <td>{{ $item->user->name ?? '-' }}</td>
                                     <td>{{ $item->tgl_jam_mulai ?? '-' }}</td>
                                     <td>{{ $item->tgl_jam_selesai ?? '-' }}</td>
+                                    @php
+                                        $statusText = ['approved', 'rejected', 'pending'];
+                                    @endphp
+
                                     <td class="text-center">
                                         @if ($item->tanda_tangan)
-                                            <img src="{{ asset('storage/' . $item->tanda_tangan) }}" alt="Tanda Tangan"
-                                                style="width: 80px; height: auto;">
+                                            @if (in_array(strtolower($item->tanda_tangan), $statusText))
+                                                {{ ucfirst($item->tanda_tangan) }}
+                                            @else
+                                                <img src="{{ asset('storage/' . $item->tanda_tangan) }}" alt="Tanda Tangan"
+                                                    style="width: 80px; height: auto;">
+                                            @endif
                                         @else
                                             -
                                         @endif
                                     </td>
+
 
                                     <td>{{ $item->total_jam_kerja ?? '-' }}</td>
                                     <td>{{ $item->approver ? $item->approver->name : '-' }}</td>
