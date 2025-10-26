@@ -328,7 +328,8 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="importLemburModalLabel">Import Data Lembur</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                         <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
@@ -346,7 +347,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCloseModal">Batal</button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-file-import me-1"></i> Import & Update
                         </button>
@@ -426,6 +427,8 @@
                 if (status === 'ditolak') return '<span class="badge bg-danger">Ditolak</span>';
                 return '<span class="badge bg-warning text-dark">Menunggu</span>';
             }
-        });
+            // ✅ Tutup modal ketika tombol “Tutup” diklik
+        closeButton.addEventListener('click', closeModal);
+    });
     </script>
 @endpush

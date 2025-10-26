@@ -66,7 +66,6 @@ class LemburController extends Controller
     {
         $request->validate([
             'tgl_pengajuan' => 'required|date',
-            'section' => 'nullable|string|max:100',
             'tgl_jam_mulai' => 'required',
             'tgl_jam_selesai' => 'required',
             'approver_id' => 'required',
@@ -99,18 +98,27 @@ class LemburController extends Controller
         $image = str_replace(' ', '+', $image);
         Storage::disk('public')->put($imagePath, base64_decode($image));
 
+         // ✅ Ambil user yang sedang login
+        $user = Auth::user();
+        $status = 'menunggu';
+        $approverId = $request->approver_id;
+
+        if ($user->role === 'direktur') {
+            $status = 'disetujui';
+            $approverId = $user->id; // Direktur menyetujui sendiri
+        }
+
         // Simpan ke database
         Lembur::create([
             'user_id' => Auth::id(),
             'tgl_pengajuan' => $request->tgl_pengajuan,
-            'section' => $request->section,
             'tgl_jam_mulai' => $request->tgl_jam_mulai,
             'tgl_jam_selesai' => $request->tgl_jam_selesai,
             'approver_id' => $approverId,
             'total_jam_kerja' => $totalJamKerja,
             'tanda_tangan' => $imagePath,
             'deskripsi_kerja' => $request->deskripsi_kerja,
-            'status_pengajuan' => 'menunggu',
+            'status_pengajuan' => $status,
         ]);
 
         return redirect()->route('lembur.create')->with('success', 'Pengajuan lembur berhasil dikirim.');

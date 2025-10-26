@@ -3,7 +3,7 @@
 
     <!-- Brand -->
     <a class="sidebar-brand d-flex flex-column align-items-center justify-content-center py-3"
-        href="{{ route('dashboard') }}">
+        href="">
         <div class="sidebar-brand-icon mb-1">
             <img src="{{ asset('img/logo.png') }}" alt="Logo" class="img-fluid" style="width: 90px; height: auto;">
         </div>
@@ -185,7 +185,7 @@
                 <span>Cuti</span>
             </a>
             <div id="cutiAtasan" class="collapse">
-                <div class="bg-white py-2 colflapse-inner rounded">
+                <div class="bg-white py-2 collapse-inner rounded">
                     <a class="collapse-item" href="{{ route('cuti.create') }}">Pengajuan Cuti</a>
                     <a class="collapse-item" href="{{ route('cuti.riwayat') }}">Riwayat Cuti</a>
                     <a class="collapse-item" href="{{ route('cuti.approval') }}">Approval dari Karyawan</a>

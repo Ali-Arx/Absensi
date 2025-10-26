@@ -73,7 +73,7 @@
                                 <option value="IT" {{ request('department') == 'Sales' ? 'selected' : '' }}>Sales
                                 </option>
                                 <option value="Finance" {{ request('department') == 'Productionh' ? 'selected' : '' }}>
-                                    Productionh
+                                    Production
                                 <option value="HR" {{ request('department') == 'Office' ? 'selected' : '' }}>Office</option>
                                 <option value="IT" {{ request('department') == 'Sales' ? 'selected' : '' }}>Sales</option>
                                 <option value="Finance" {{ request('department') == 'Productionh' ? 'selected' : '' }}>Productionh
@@ -142,11 +142,11 @@
                         <thead class="thead-light">
                             <tr>
                                 <th class="text-center" style="width: 50px;">No</th>
-                                <th style="width: 100px;">No ID</th>
-                                <th style="width: 120px;">Departmen</th>
-                                <th>Nama</th>
-                                <th style="width: 130px;">Tanggal Masuk</th>
-                                <th style="width: 150px;">Jabatan</th>
+                                <th style="width: 100px;">Emp No</th>
+                                <th style="width: 120px;">Department</th>
+                                <th style="width: 120px;">Name</th>
+                                <th style="width: 130px;">Join Date</th>
+                                <th style="width: 150px;">Position</th>
                                 <th style="width: 120px;">No Hp</th>
                                 <th class="text-center" style="width: 100px;">Status</th>
                                 <th class="text-center" style="width: 180px;">Aksi</th>

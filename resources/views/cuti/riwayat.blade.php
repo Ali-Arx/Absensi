@@ -198,8 +198,6 @@
             </div>
         </div>
     </div>
-
-@endsection
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const modalElement = document.getElementById('modalDetailCuti');
@@ -266,7 +264,7 @@
 
                         // Status badge
                         let statusBadge = '';
-                        switch (data.status) {
+                        switch (data.status_pengajuan) {
                             case 'disetujui':
                                 statusBadge =
                                     '<span class="badge bg-success">Disetujui</span>';
@@ -315,3 +313,5 @@
         closeButton.addEventListener('click', closeModal);
     });
 </script>
+
+@endsection

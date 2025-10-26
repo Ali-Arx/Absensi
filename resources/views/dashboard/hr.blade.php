@@ -14,7 +14,7 @@
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div>
                         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Kehadiran</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">240</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $jumlahHadir }}</div>
                     </div>
                     <i class="fas fa-calendar stats-icon"></i>
                 </div>
@@ -26,7 +26,7 @@
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div>
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Karyawan</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">250</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $allUser }}</div>
                     </div>
                     <i class="fas fa-users stats-icon"></i>
                 </div>
@@ -38,7 +38,7 @@
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div>
                         <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Tidak Hadir</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">10</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $jumlahTidakHadir }}</div>
                     </div>
                     <i class="fas fa-clipboard-list stats-icon"></i>
                 </div>
@@ -53,7 +53,7 @@
                 <div class="card-body text-center">
                     <h6 class="text-muted mb-2">Absen Datang</h6>
                     <p class="mb-1">Normal : <strong>08:00:00</strong></p>
-                    <p class="mb-0">Malam : <strong>15:30:00</strong></p>
+                    <p class="mb-0">Malam : <strong>16:00:00</strong></p>
                 </div>
             </div>
         </div>

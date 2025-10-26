@@ -19,6 +19,12 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('departement');
+            $table->string('No_HP')->nullable();
+            $table->string('alamat')->nullable();
+            $table->string('jabatan')->nullable();
+            $table->date('join_date')->nullable();
+            $table->string('status')->nullable();
+            $table->string('foto')->nullable();
             $table->enum('role', ['karyawan', 'atasan', 'hr', 'direktur'])->default('karyawan');
             $table->rememberToken();
             $table->timestamps();

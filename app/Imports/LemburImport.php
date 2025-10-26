@@ -27,9 +27,11 @@ class LemburImport implements
      */
     public function collection(Collection $rows)
     {
+
         foreach ($rows as $row) {
             // 1. Temukan User (Karyawan) berdasarkan 'No ID'
             $badge_number = $row['no_id_karyawan'];
+
             if (!isset($this->userCache[$badge_number])) {
                 $this->userCache[$badge_number] = User::where('badge_number', $badge_number)->first();
             }
@@ -68,14 +70,13 @@ class LemburImport implements
                 : null;
 
             // 6. Buat atau Update data Lembur
-            Lembur::updateOrCreate(
+            Lembur::firstOrCreate(
                 [
                     'user_id' => $user->id,
                     'tgl_jam_mulai' => $tgl_jam_mulai, // Kunci unik
                 ],
                 [
                     'tgl_pengajuan' => $tgl_pengajuan,
-                    'section' => $row['section'] ?? null,
                     'approver_id' => $approver_id,
                     // 'jam_kerja_id' diabaikan
                     'tgl_jam_selesai' => $tgl_jam_selesai,

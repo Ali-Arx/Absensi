@@ -21,7 +21,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
 
     // Redirect otomatis sesuai role
-    Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+   
 
 
     // HR

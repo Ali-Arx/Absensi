@@ -1,4 +1,4 @@
-@extends('layouts.app') 
+@extends('layouts.app')
 
 @section('title', 'Dashboard Atasan')
 
@@ -19,11 +19,8 @@
             </p>
             <p class="mb-0">
                 ✅ Status Kehadiran:
-                {{-- @if ($absensis == 'Sudah Absen')
-                    <span class="badge bg-success text-white">{{ $statusKehadiran }}</span>
-                @else
-                    <span class="badge bg-danger text-white">{{ $statusKehadiran }}</span>
-                @endif --}}
+                <span
+                    class="badge bg-success text-white">{{ $absensiHariIni->isNotEmpty() ? 'Sudah Absen' : 'Belum Absen' }}</span>
             </p>
 
         </div>
